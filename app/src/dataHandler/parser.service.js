@@ -1133,9 +1133,9 @@ angular.module('evtviewer.dataHandler')
 		var deferred = $q.defer(),
 			editionText = balancedHTMLString, //TEMP
 
-			doc = xmlParser.parse('<div id="mainContentToTranform" class="' + editionLevel + '">' + balancedHTMLString + '</div>');
+			doc = xmlParser.parse('<div id="mainContentToTransform" class="' + editionLevel + '">' + balancedHTMLString + '</div>');
 			if (doc !== undefined) {
-				var docDOM = doc.getElementById('mainContentToTranform');
+				var docDOM = doc.getElementById('mainContentToTransform');
 				//remove <pb>s
 				var pbNode,
 					pbs = docDOM.getElementsByTagName('pb'),
