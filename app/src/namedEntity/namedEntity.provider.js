@@ -411,7 +411,7 @@ angular.module('evtviewer.namedEntity')
                 tabs.moreInfo = { label: 'NAMED_ENTITIES.MORE_INFO' };
             }
 
-            if (entityType !== 'relation' && defaults.allowedTabs.indexOf('occurrences') >= 0 && occurrences) {
+            if (entityType !== 'relation' && defaults.allowedTabs.indexOf('occurrences') >= 0) {
                 tabs._indexes.push('occurrences');
                 tabs.occurrences = { label: 'NAMED_ENTITIES.OCCURRENCES.MAIN' };
             }

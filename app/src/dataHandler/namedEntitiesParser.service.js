@@ -719,7 +719,7 @@ angular.module('evtviewer.dataHandler')
 						pageLabel: pageObj ? pageObj.label : divId,
 						docId: docObj ? docObj.value : '',
 						docLabel: docObj ? docObj.label : '',
-						text: entityElem.innerHTML 
+						text: entityElem.textContent 
 					};
 					NEparser.addOccurrence(refId, occurrence);
 				}
@@ -745,7 +745,7 @@ angular.module('evtviewer.dataHandler')
 						divLabel: divObj ? divObj.label : divId,
 						docId: docObj ? docObj.value : '',
 						docLabel: docObj ? docObj.label : '',
-						text: entityElem.innerHTML 
+						text: entityElem.textContent 
 					};
 					NEparser.addOccurrence(refId, occurrence);
 				}

@@ -163,6 +163,7 @@
 		"MORE_INFO": "Informazioni aggiuntive",
 		"OCCURRENCES": {
 			"MAIN": "Occorrenze",
+			"NOTFOUND": "Non ci sono occorrenze",
 			"SMALL": "occorrenze",
 			"TITLE": "{{totalLength}} occorrenze trovate in {{formLength}} forme diverse"
 		},

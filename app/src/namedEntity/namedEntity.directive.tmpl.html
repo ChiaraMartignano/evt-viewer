@@ -115,8 +115,11 @@
                             </span>
                         </div>
                         <div ng-switch-when="occurrences">
-                            <div class="forms_title">
+                            <div class="forms_title" ng-if="vm.occurrences">
                                 {{ 'NAMED_ENTITIES.OCCURRENCES.TITLE' | translate:{totalLength: vm.occurrences._length, formLength: vm.occurrences._indexes.length} }}
+                            </div>
+                            <div class="forms_title" ng-if="!vm.occurrences">
+                                {{ 'NAMED_ENTITIES.OCCURRENCES.NOTFOUND' | translate }}
                             </div>
                             <div class="forms_cards">
                                 <div
