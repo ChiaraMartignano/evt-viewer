@@ -619,7 +619,7 @@ angular.module('evtviewer.box')
 					};
 					break;
             case 'text':
-					if (!parsedData.isCriticalEditionAvailable()) {
+					if (!parsedData.isCriticalEditionAvailable() || evtInterface.getState('currentEdition') !== 'critical') {
 						topMenuList.selectors.push({
 							id: 'page_' + currentId,
 							type: 'page',
