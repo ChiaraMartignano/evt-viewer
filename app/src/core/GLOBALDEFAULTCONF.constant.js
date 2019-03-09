@@ -91,21 +91,21 @@ angular.module('evtviewer.core')
 	indexTitle: 'EVT Critical Viewer',
 	webSite: '',
 
-	editionType: 'critical',
+	editionType: 'diplomatic',
 
-	defaultEdition: 'critical',
+	defaultEdition: 'diplomatic',
 
 	showEditionLevelSelector: false,
 	availableEditionLevel: [{
 		value: 'critical',
 		label: 'Critical',
 		title: 'Critical edition',
-		visible: true
+		visible: false
 	}, {
 		value: 'diplomatic',
 		label: 'Diplomatic',
 		title: 'Diplomatic edition',
-		visible: false
+		visible: true
 	}, {
 		value: 'interpretative',
 		label: 'Interpretative',
@@ -113,7 +113,7 @@ angular.module('evtviewer.core')
 		visible: false
 	}],
 	
-	mainDocId: 'tr',
+	mainDocId: 'v_cgm696',
 
 	showDocumentSelector: true,
 
