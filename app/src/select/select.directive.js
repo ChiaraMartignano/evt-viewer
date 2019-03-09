@@ -89,7 +89,17 @@ angular.module('evtviewer.select')
                     if (oldItem !== newItem) {
                         currentSelect.selectOptionByValue(newItem);
                     }
-                }, true); 
+                    var oldPage = parsedData.getPage(oldItem),
+                        newPage = parsedData.getPage(newItem);
+                    if (oldPage.docs[0] !== newPage.docs[0]) {
+                        var currentDoc = parsedData.getDocument(newPage.docs[0]);
+                        var pages = currentDoc.pages.map(function(page) {
+                            return parsedData.getPage(page);
+                        });
+                        currentSelect.optionList = currentSelect.formatOptionList(pages);
+                        currentSelect.selectOptionByValue(pages[0].value);
+                    }
+                }, true);
             }
 
             if (scope.type === 'edition') {

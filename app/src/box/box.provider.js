@@ -618,45 +618,24 @@ angular.module('evtviewer.box')
 						scope.vm.isLoading = false;
 					};
 					break;
-            case 'text':
-               if(currentId === 'mainText' || currentId === 'mainText1') {
-                  bottomMenuList.buttons.push({
-                     title: 'Search',
-                     label: 'Search',
-                     icon: 'search',
-                     type: 'searchToolsInternal',
-                     show: function() {
-                        return true;
-                     },
-                     disabled: function() {
-                        return true;
-                     }
-                  });
-                  bottomMenuList.buttons.push({
-                     title: 'Create index for enable search',
-                     label: 'Create index',
-                     icon: '',
-                     type: 'searchIndex',
-                     show: function() {
-                        return true;
-                     }
-                  });
-               }
-               else {
-                  bottomMenuList.buttons.push({
-                     title: 'Search',
-                     label: 'Search',
-                     icon: 'search',
-                     type: 'searchToolsInternal',
-                     show: function() {
-                        return true;
-                     },
-                     disabled: function() {
-                        return true;
-                     }
-                  });
-               }
-					if (!parsedData.isCriticalEditionAvailable()) {
+						case 'text':
+						if (config.showDocumentSelector
+							&& parsedData.getDocuments()._indexes
+							&& parsedData.getDocuments()._indexes.length > 0) {
+							topMenuList.selectors.push({
+								id: 'document_' + currentId,
+								type: 'document',
+								initValue: evtInterface.getState('currentDocument')
+							});
+						}
+						if (config.showEditionLevelSelector) {
+							topMenuList.selectors.push({
+								id: 'edition_' + currentId,
+								type: 'edition',
+								initValue: evtInterface.getState('currentEdition')
+							});
+						}
+					if (!parsedData.isCriticalEditionAvailable() || evtInterface.getState('currentEdition') !== 'critical') {
 						topMenuList.selectors.push({
 							id: 'page_' + currentId,
 							type: 'page',

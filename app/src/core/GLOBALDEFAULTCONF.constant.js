@@ -108,20 +108,21 @@ angular.module('evtviewer.core')
 		value: 'critical',
 		label: 'Critical',
 		title: 'Critical edition',
-		visible: true
+		visible: false
 	}, {
 		value: 'diplomatic',
 		label: 'Diplomatic',
 		title: 'Diplomatic edition',
-		visible: false
+		visible: true
 	}, {
 		value: 'interpretative',
 		label: 'Interpretative',
 		title: 'Interpretative edition',
-		visible: false
+		visible: true
 	}],
-														
-	mainDocId: '',
+	
+	mainDocId: 'v_cgm696',
+
 	showDocumentSelector: true,
 
 	enableXMLdownload: true,

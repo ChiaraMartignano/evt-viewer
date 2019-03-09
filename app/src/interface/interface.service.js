@@ -294,7 +294,8 @@ angular.module('evtviewer.interface')
                                   quotesInBox = !config.showInlineSources && quotesList.length > 0,
                                   analoguesList = parsedData.getAnalogues()._indexes.encodingStructure || [],
                                   analoguesInBox = !config.showInlineAnalogues && analoguesList.length > 0;
-                              state.isApparatusBoxOpen = (!config.showInlineCriticalApparatus || quotesInBox || analoguesInBox);
+                              state.isApparatusBoxOpen = (config.defaultEdition === 'critical'
+                                && (!config.showInlineCriticalApparatus || quotesInBox || analoguesInBox));
 
                               $rootScope.$applyAsync(state.isLoading = false);
 
@@ -1022,16 +1023,6 @@ angular.module('evtviewer.interface')
               }
             }
 
-            // PAGE
-            if ( params.p !== undefined && parsedData.getEdition(params.ce)) {
-                pageId = params.p;
-            } else {
-                var pages = parsedData.getPages();
-                if (pages.length > 0) {
-                    pageId = pages[pages[0]].value || undefined;
-                }
-            }
-
             // DOCUMENT
             if ( params.d !== undefined && parsedData.getDocument(params.d) !== undefined ) {
                 docId  = params.d;
@@ -1041,7 +1032,19 @@ angular.module('evtviewer.interface')
                     docId = documents[documents._indexes[0]].value || undefined;
                 }
             }
-            
+
+            // PAGE
+            if ( params.p !== undefined && parsedData.getEdition(params.ce)) {
+                pageId = params.p;
+            } else if (docId && parsedData.getDocument(docId).pages.length > 0) {
+                pageId = parsedData.getDocument(docId).pages[0];
+            } else {
+                var pages = parsedData.getPages();
+                if (pages.length > 0) {
+                    pageId = pages[pages[0]].value || undefined;
+                }
+            }   
+
             // DIV/SECTION
             if (params.s && parsedData.getDiv(params.s)) {
                 divId = params.s;

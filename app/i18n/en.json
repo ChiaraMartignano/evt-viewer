@@ -164,7 +164,8 @@
 		"OCCURRENCES": {
 			"MAIN": "Occurrences",
 			"SMALL": "occurrences",
-			"TITLE": "{{totalLength}} occurrences found in {{formLength}} different forms"
+			"TITLE": "{{totalLength}} occurrences found in {{formLength}} different forms",
+			"NOTFOUND": "There are no occurrences"
 		},
 		"XML": "XML",
 		"MAP": "Map"
