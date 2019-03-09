@@ -550,6 +550,7 @@ angular.module('evtviewer.box')
                     return evtInterface.getState('currentEdition');
                 }, function(newItem, oldItem) {
                     if (newItem !== oldItem) {
+                        scope.vm.edition = newItem;
                         scope.vm.isLoading = true;
                         currentBox.updateContent();
                     }

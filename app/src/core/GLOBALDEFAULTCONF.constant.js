@@ -102,13 +102,13 @@ angular.module('evtviewer.core')
 			visible  : true
 	}],
 	editionType: 'critical',
-	defaultEdition: 'critical',
-	showEditionLevelSelector: false,
+	defaultEdition: 'diplomatic',
+	showEditionLevelSelector: true,
 	availableEditionLevel: [{
 		value: 'critical',
 		label: 'Critical',
 		title: 'Critical edition',
-		visible: false
+		visible: true
 	}, {
 		value: 'diplomatic',
 		label: 'Diplomatic',

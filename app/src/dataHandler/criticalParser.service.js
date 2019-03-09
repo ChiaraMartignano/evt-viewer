@@ -225,6 +225,7 @@ angular.module('evtviewer.dataHandler')
 		}
 		if (parsedData.getEncodingDetail('variantEncodingMethod') === 'double-end-point'
 					&& parsedData.getEncodingDetail('variantEncodingLocation') === 'external') {
+						console.log(parsedData.getCriticalEntries())
 			var depaAppsStartIds = Object.values(parsedData.getCriticalEntries()._indexes.depa.start),
 					anchorsIds = [];
 			depaAppsStartIds.map(function(id) {

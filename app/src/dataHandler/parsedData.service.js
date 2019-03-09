@@ -1818,6 +1818,10 @@ angular.module('evtviewer.dataHandler')
 				encodingStructure: [],
 				appEntries: [],
 				exponents: [],
+				depa: {
+					start: {},
+					end: {}
+				}
 			}
 		};
 	};
