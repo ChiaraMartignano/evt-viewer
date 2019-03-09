@@ -1,13 +1,14 @@
 {
-    "indexTitle": "Avicenna",
+
+    "indexTitle": "Version DI of the 'Devisement dou Monde'",
     "webSite": "",
     "logoUrl": "",
 
     "defaultLanguage": "en",
     "languages": ["en", "it"],
 
-	"dataUrl": "../data/avicenna.xml",
-    "analoguesUrl"     : "../data/analogues.xml",
+	"dataUrl": "../data/elisa/main1.xml",
+    "analoguesUrl"     : "",
     "sourcesUrl"       : "",
     "sourcesTextsUrl" : "",
 
@@ -22,7 +23,7 @@
         "label"    : "MULTIPLE_RECENSIONS",
         "icon"     : "mode-versions",
         "viewMode" : "versions",
-        "visible"  : true
+        "visible"  : false
     },
     {
         "label"    : "IMAGE_TEXT",
@@ -40,17 +41,17 @@
         "label"    : "COLLATION",
         "icon"     : "mode-collation",
         "viewMode" : "collation",
-        "visible"  : true
+        "visible"  : false
     },
     {
         "label"    : "SOURCE_TEXT",
         "icon"     : "mode-srcTxt",
         "viewMode" : "srcTxt",
-        "visible"  : true
+        "visible"  : false
     }],
     
     "defaultEdition": "critical",
-    "showEditionLevelSelector": false,
+    "showEditionLevelSelector": true,
     "availableEditionLevel": [{
         "value": "critical",
         "label": "Critical",
@@ -60,33 +61,33 @@
         "value": "diplomatic",
         "label": "Diplomatic",
         "title": "Diplomatic edition",
-        "visible": false
+        "visible": true
     }, {
         "value": "interpretative",
         "label": "Interpretative",
         "title": "Interpretative edition",
-        "visible": false
+        "visible": true
     }],
 
-    "mainDocId": "",
+    "mainDocId": "v_cgm696",
     "showDocumentSelector": true,
-    
+
     "enableXMLdownload" : true,
     "downloadableFiles": [
 		{
-			"title": "Translated Critical Text",
+			"title": "Base text: BSB cgm 696",
 			"formats": {
-				"pdf": "../data/download/Edizione_critica.pdf",
-                "xml": "../data/trad.xml",
-                "txt": "../data/download/Edizione_critica.txt"
+                "pdf": "",
+                "xml": "data/elisa/cgm696.xml",
+                "txt": ""
 			}
 		},
 		{
-			"title": "Version F",
+			"title": "Fragment: BSB cgm 252",
 			"formats": {
-				"pdf": "../data/download/Redazione_F.pdf",
-                "xml": "../data/redazioni/F.xml",
-                "txt": "../data/download/Redazione_F.txt"
+                "pdf": "",
+                "xml": "data/elisa/redazioni/cgm252.xml",
+                "txt": ""
 			}
 		}
 	],
@@ -110,7 +111,7 @@
         "available": true
     }],
     "otherEntitiesToHandle": [],
-    "listsMainContentDef": "<sourceDesc>",
+    "listsMainContentDef": "<back>",
 
 	"listDef": "<listWit>, <listChange>",
 	"versionDef": "<witness>, <change>",
@@ -119,13 +120,13 @@
     "quoteDef"              : "",
     "analogueDef"           : "",
 	"possibleVariantFilters": "",
-	"possibleLemmaFilters": "resp",
-    "notSignificantVariant": "<orig>, <sic>, [type=orthographic]",
+	"possibleLemmaFilters": "",
+    "notSignificantVariant": "",
     
     "preferredWitness": "",
     "skipWitnesses": "",
     "witnessesGroups": [ ],
-    "versions" : ["rec2", "rec1", "rec3"],
+    "versions" : [],
 
     "showReadingExponent": true,
     "alwaysPositiveApparatus": false,
