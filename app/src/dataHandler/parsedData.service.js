@@ -50,6 +50,8 @@ angular.module('evtviewer.dataHandler')
 		msDesc: ''
 	};
 
+	var mainFront = {};
+
 	/**
      * @ngdoc property
      * @name evtviewer.dataHandler.parsedData#bibliographicRefsCollection
@@ -108,6 +110,15 @@ angular.module('evtviewer.dataHandler')
      */
 	var pagesCollection = {
 		length: 0
+	};
+
+	var divsCollection = {
+		length: 0,
+		_indexes: {
+			corresp : {},
+			subDivs: {},
+			main: {}
+		}
 	};
 	/**
      * @ngdoc property
@@ -291,6 +302,10 @@ angular.module('evtviewer.dataHandler')
 			encodingStructure: [],
 			appEntries: [],
 			exponents: [],
+			depa: {
+				start: {},
+				end: {}
+			}
 		}
 	};
 	/**
@@ -473,6 +488,16 @@ angular.module('evtviewer.dataHandler')
 		},
 		_indexes: []
 	};
+
+	parsedData.getMainFront = function() {
+		return mainFront;
+	}
+
+	parsedData.updateMainFront = function(front) {
+		if (front) {
+			mainFront = front;
+		}
+	}
 	/**
      * @ngdoc method
      * @name evtviewer.dataHandler.parsedData#getEncodingDetail
@@ -500,6 +525,10 @@ angular.module('evtviewer.dataHandler')
 	parsedData.setEncodingDetail = function(detailName, value) {
 		encodingDetails[detailName] = value;
 	};
+
+	parsedData.getNamedEntities = function() {
+		return namedEntities;
+	}
 
 	/**
      * @ngdoc method
@@ -530,6 +559,10 @@ angular.module('evtviewer.dataHandler')
                 break;
             case 'relation':
             	icon = 'fa-share-alt';
+            	break;
+            case 'term':
+            case 'generic':
+            	icon = 'fa-font';
             	break;
             default:
                 icon = 'fa-list-ul';
@@ -964,6 +997,37 @@ angular.module('evtviewer.dataHandler')
 	parsedData.getPage = function(pageId) {
 		return pagesCollection[pageId];
 	};
+
+	parsedData.addDiv = function(div, docId) {
+		var divId = div.value;
+		divsCollection[divsCollection.length] = divId;
+		divsCollection[divId] = div;
+		divsCollection.length++;
+		documentsCollection[docId].divs.push(divId);
+		if (div.corresp) {
+			angular.forEach(div.corresp, function(corresp) {
+				if (!divsCollection._indexes.corresp[corresp]) {
+					divsCollection._indexes.corresp[corresp] = [];
+				}
+				divsCollection._indexes.corresp[corresp].push(div.value);
+			});
+		}
+		if (!div._isSubDiv) {
+			divsCollection._indexes.subDivs[div.value] = div.subDivs || [];
+			if (!divsCollection._indexes.main[div.doc]) {
+				divsCollection._indexes.main[div.doc] = []
+			}
+			divsCollection._indexes.main[div.doc].push(div.value);
+		}
+	};
+
+	parsedData.getDivs = function() {
+		return divsCollection;
+	};
+
+	parsedData.getDiv = function(divId) {
+		return divsCollection[divId];
+	}
 
 	/**
      * @ngdoc method
@@ -1768,21 +1832,23 @@ angular.module('evtviewer.dataHandler')
      * @returns {string} Alphanumeric exponent generated
      */
 	var generateAlphabeticExponent = function() {
-		var number = criticalAppCollection._indexes.appEntries.length,
-			exponent;
-		var firstExp, lastExp;
-        if (number > 26) {
-            firstExp = (Math.floor(number/26))+96;
-            if (number%26 === 0) {
-                exponent = '&#'+(firstExp-1)+';z';
-            } else {
-            lastExp = (number%26)+96;
-            exponent='&#'+firstExp+';&#'+lastExp+';'; }
-        } else {
-            exponent = '&#'+(number+96)+';';
-        }
-        return exponent;
+		var number = criticalAppCollection._indexes.appEntries.length;
+		return findExp(number, '');
 	};
+
+	var findExp = function(number, exponent) {
+		if (number <= 26) {
+			return String.fromCharCode(number + 96) + exponent;
+		} else {
+			var mod = number % 26, div = Math.floor(number / 26), exp;
+			if (mod === 0) {
+				exp = findExp(div - 1, exponent) + 'z' + exponent;
+			} else {
+				exp = findExp(div, exponent) + String.fromCharCode(mod + 96) + exponent;
+			}
+			return exp;
+		}
+	}
 
 	/**
      * @ngdoc method
@@ -1831,14 +1897,51 @@ angular.module('evtviewer.dataHandler')
 			if (!entry._subApp) {
 				criticalAppCollection._indexes.encodingStructure.push(entry.id);
 			}
-        	var exponent = generateAlphabeticExponent();
-        	criticalAppCollection._indexes.exponents.push({appId: entry.id, exponent: exponent});
-        	criticalAppCollection[entry.id].exponent = exponent;
+			var exponent = generateAlphabeticExponent();
+			criticalAppCollection._indexes.exponents.push({appId: entry.id, exponent: exponent});
+			criticalAppCollection[entry.id].exponent = exponent;
 		}
 		if (entry._variance > criticalAppCollection._maxVariance) {
 			criticalAppCollection._maxVariance = entry._variance;
 		}
+		if (encodingDetails.variantEncodingMethod === 'double-end-point') {
+			parsedData.addCriticalEntryDepaInfo(entry);
+		}
 	};
+
+	/**
+	 * @ngdoc method
+	 * @name evtviewer.dataHandler.parsedData#addCriticalEntryDepaInfo
+	 * @methodOf evtviewer.dataHandler.parsedData
+	 *
+	 * @description
+	 * Adds the value of the from and the to attributes to the indexes of the app entries collection.
+	 * If the to attribute is not defined, it is created according to the variant ecoding location.
+	 * @param {Objects} entry the critical apparatus entry that has been added to the app entries collection
+	 * @author CM
+	 */
+	parsedData.addCriticalEntryDepaInfo = function(entry) {
+		if (!criticalAppCollection._indexes.depa) {
+			criticalAppCollection._indexes['depa'] = {
+				start: {},
+				end: {}
+			};
+		}
+		if (entry.attributes.from) {
+			var from = entry.attributes.from.charAt(0) === '#' ? entry.attributes.from.substr(1) : entry.attributes.from
+			criticalAppCollection._indexes.depa.start[entry.id] = from;
+		}
+		if (entry.attributes.to) {
+			var to = entry.attributes.to.charAt(0) === '#' ? entry.attributes.to.substr(1) : entry.attributes.to
+			criticalAppCollection._indexes.depa.end[entry.id] = to;
+		} else {
+			if (encodingDetails.variantEncodingLocation === 'internal') {
+				criticalAppCollection._indexes.depa.end[entry.id] = entry.id;
+			} else if (encodingDetails.variantEncodingLocation === 'external' && entry.attributes.from) {
+				criticalAppCollection._indexes.depa.end[entry.id] = entry.attributes.from.substr(1);
+			}
+		}
+	}
 
 	/**
      * @ngdoc method

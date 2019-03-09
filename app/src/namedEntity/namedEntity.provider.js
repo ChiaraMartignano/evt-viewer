@@ -39,7 +39,7 @@ angular.module('evtviewer.namedEntity')
      * where the scope of the directive is extended with all the necessary properties and methods
      * according to specific values of initial scope properties.</p>
      **/
-    this.$get = function($timeout, config, parsedData, evtNamedEntitiesParser, baseData, evtInterface, evtNamedEntityRef, evtPinnedElements) {
+    this.$get = function($timeout, config, parsedData, evtNamedEntitiesParser, baseData, evtInterface, evtNamedEntityRef, evtPinnedElements, evtDialog, evtTabsContainer, evtList) {
         var namedEntity    = {},
             collection = {},
             list       = [],
@@ -96,6 +96,13 @@ angular.module('evtviewer.namedEntity')
             vm.occurrencesOpened = !vm.occurrencesOpened;
             vm.toggleSection('occurrencesOpened');
         };
+
+        var toggleFormOccurrences = function(form, $event) {
+            var vm = this;
+            $event.stopPropagation();
+            var elem = document.getElementById(form + '_occurrences');
+            elem.classList.toggle('visible');
+        }
         /**
          * @ngdoc method
          * @name evtviewer.namedEntity.controller:NamedEntityCtrl#toggleMoreInfo
@@ -124,17 +131,52 @@ angular.module('evtviewer.namedEntity')
          * @param {Object} occurrence Object representing the occurence we want to navigate to.
          * It contains all the information about document and page to which navigate.
          */
-        var goToOccurrence = function(occurrence) {
+        var goToOccurrence = function(docLabel, label) {
             var vm = this;
-            evtInterface.updateState('currentPage', occurrence.pageId);
-            evtInterface.updateState('currentDoc', occurrence.docId);
+            var docId = parsedData.getDocuments()._indexes.find(function(id) {
+                return parsedData.getDocument(id).label === docLabel;
+            });
+            if (!docId) {return;}
+            var divId = parsedData.getDocument(docId).divs.find(function(id) {
+                return parsedData.getDiv(id).label === label;
+            });
+            var pageId = parsedData.getDocument(docId).pages.find(function(id) {
+                return parsedData.getPage(id).label === label;
+            });
+            if (divId) {
+                evtInterface.updateDiv(docId, divId);
+            } else if (pageId) {
+                evtInterface.updateState('currentPage', pageId);
+            } else if (!divId && !pageId) {return;}
+            var wit, corresp = parsedData.getWitnessesList().find(function(witId) {
+                wit = witId
+                return parsedData.getWitness(witId).corresp === docId;
+            });
+            if (config.mainDocId && corresp) {
+                var view = evtInterface.getState('currentViewMode');
+                if (view !== 'collation') {
+                    evtInterface.updateState('currentViewMode', 'collation');
+                }
+                var currentWits = evtInterface.getState('currentWits');
+                var index = currentWits.indexOf(wit);
+                if (index === -1) {
+                    evtInterface.addWitnessAtIndex(wit, 0);
+                } else if (index > 0) {
+                    evtInterface.switchWitnesses(currentWits[0], wit);
+                }
+            } else {
+                evtInterface.updateState('currentDoc', docId);
+            }
             evtInterface.updateUrl();
-            if (evtInterface.getState('secondaryContent') === 'entitiesList') {
+            if (evtInterface.getState('secondaryContent') === 'toc') {
                 evtInterface.updateState('secondaryContent', '');
             }
             $timeout(function() {
                 evtNamedEntityRef.highlightByEntityId(vm.entityId);
             }, 500);
+            $timeout(function() {
+                evtNamedEntityRef.highlightByEntityId('');
+            }, 5000);
         };
         /**
          * @ngdoc method
@@ -229,6 +271,19 @@ angular.module('evtviewer.namedEntity')
                 }
             }
         };
+
+        var openEntity = function() {
+            var vm = this;
+            evtInterface.updateState('secondaryContent', 'toc');
+            evtDialog.openByType('toc');
+            var list = parsedData.getNamedEntities()[vm.entityId].collectionId;
+            evtInterface.updateProperty('tabsContainerOpenedContent', 'entitiesLists');
+            evtInterface.updateProperty('tabsContainerOpenedTab', list);
+            evtInterface.updateState('currentNamedEntity', vm.entityId);
+            setTimeout(function() {
+                evtList.scrollToElemById(list, vm.entityId);
+            }, 1000);
+        }
         /**
          * @ngdoc method
          * @name evtviewer.namedEntity.controller:NamedEntityCtrl#isCurrentPageDoc
@@ -347,23 +402,50 @@ angular.module('evtviewer.namedEntity')
             var occurrences;
             if (namedEntity && namedEntity.occurrences) {
                 occurrences = namedEntity.occurrences;
-            } else {
-                // Ask interface to calculate occurrences for entity
-                //occurrences = [{ pageId: "fol_214v", pageLabel: "214v", docId: "CI_118", docLabel: "CI (118)" }];
             }
             var tabs = {
                 _indexes : []
             };
-            tabs._indexes.push('moreInfo');
-            tabs.moreInfo = { label: 'NAMED_ENTITIES.MORE_INFO' };
-
-            if (entityType !== 'relation') {
-                tabs._indexes.push('occurrences');
-                tabs.occurrences = { label: 'NAMED_ENTITIES.OCCURRENCES' };
+            if (defaults.allowedTabs.indexOf('moreInfo') >= 0) {
+                tabs._indexes.push('moreInfo');
+                tabs.moreInfo = { label: 'NAMED_ENTITIES.MORE_INFO' };
             }
 
-            tabs._indexes.push('xmlSource');
-            tabs.xmlSource = { label: 'NAMED_ENTITIES.XML' };
+            if (entityType !== 'relation' && defaults.allowedTabs.indexOf('occurrences') >= 0) {
+                tabs._indexes.push('occurrences');
+                tabs.occurrences = { label: 'NAMED_ENTITIES.OCCURRENCES.MAIN' };
+            }
+
+            var center = {
+                zoom: 8
+            };
+            var mainMarker = {
+                focus: true,
+                draggable: false
+            };
+            var lfDefaults = {
+                tileLayer: "http://{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png",
+                tileLayerOptions: {
+                    opacity: 0.9,
+                    detectRetina: true,
+                    reuseTiles: true,
+                }
+            };
+            // POLO-TODO: implementare parsing di coordinate e controllo.
+            if (defaults.allowedTabs.indexOf('map') >= 0 && (entityType === 'place' || entityType === 'placeName') && namedEntity.map) {
+                tabs._indexes.push('map');
+                tabs.map = { label: 'NAMED_ENTITIES.MAP' };
+                var lat = parseFloat(namedEntity.map.lat);
+                var lng = parseFloat(namedEntity.map.lng);
+                center.lat = lat;
+                center.lng = lng;
+                mainMarker.lat = lat;
+                mainMarker.lng = lng;
+            }
+            if (defaults.allowedTabs.indexOf('xmlSource') >= 0) {
+                tabs._indexes.push('xmlSource');
+                tabs.xmlSource = { label: 'NAMED_ENTITIES.XML' };
+            }
 
             var firstSubContentOpened = tabs && tabs._indexes && tabs._indexes.length > 0 ? tabs._indexes[0] : '';
             scopeHelper = {
@@ -393,6 +475,7 @@ angular.module('evtviewer.namedEntity')
                 toggle            : toggle,
                 toggleMoreInfo    : toggleMoreInfo,
                 toggleOccurrences : toggleOccurrences,
+                toggleFormOccurrences : toggleFormOccurrences,
                 goToOccurrence    : goToOccurrence,
                 toggleSubContent  : toggleSubContent,
                 isCurrentPageDoc  : isCurrentPageDoc,
@@ -401,8 +484,11 @@ angular.module('evtviewer.namedEntity')
                 isPinAvailable : isPinAvailable,
                 isPinned: isPinned,
                 getPinnedState: getPinnedState,
-                togglePin: togglePin
-
+                togglePin: togglePin,
+                openEntity: openEntity,
+                lfCenter: center,
+                lfDefaults: lfDefaults,
+                lfMarkers: { mainMarker : mainMarker }
             };
 
             collection[currentId] = angular.extend(scope.vm, scopeHelper);
@@ -433,15 +519,16 @@ angular.module('evtviewer.namedEntity')
          * @returns {array} List of occurrences of given named entity
          */
         namedEntity.getOccurrences = function(refId) {
-            var documentsCollection = parsedData.getDocuments(),
-                documentsIndexes = documentsCollection._indexes || [],
-                totOccurrences = [];
-            for (var i = 0; i < documentsIndexes.length; i++) {
-                var currentDoc = documentsCollection[documentsIndexes[i]],
-                    docPages = evtNamedEntitiesParser.parseEntitiesOccurrences(currentDoc, refId);
-                totOccurrences = totOccurrences.concat(docPages);
+            var entityObj = parsedData.getNamedEntity(refId);
+            if (!entityObj._forms) {
+                var documentsCollection = parsedData.getDocuments(),
+                    documentsIndexes = documentsCollection._indexes || [];
+                for (var i = 0; i < documentsIndexes.length; i++) {
+                    var currentDoc = documentsCollection[documentsIndexes[i]];
+                    evtNamedEntitiesParser.parseEntitiesForms(currentDoc, refId);
+                }
             }
-            return totOccurrences;
+            return entityObj._forms;
         };
         /**
          * @ngdoc method

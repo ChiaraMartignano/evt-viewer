@@ -20,7 +20,7 @@ angular.module('evtviewer.reference')
 
 .directive('ref', function(evtRef) {
     return { //rivedere dipendenze
-        restrict: 'C',
+        restrict: 'E, C',
         scope: {
             target: '@',
             type: '@'
@@ -29,11 +29,10 @@ angular.module('evtviewer.reference')
         transclude: true,
         controllerAs: 'vm',
         controller: 'RefCtrl',
-        template: '<span class="evtRef" ng-click="vm.handleRefClick($event)" ng-transclude></span>',
+        templateUrl: 'src/reference/ref.dir.tmpl.html',
         link: function(scope) {
             // Initialize reading
             var currentRef = evtRef.build(scope);
-
             // Garbage collection
             scope.$on('$destroy', function() {
                 if (currentRef && currentRef.destroy) {

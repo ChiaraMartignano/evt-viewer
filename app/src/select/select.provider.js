@@ -29,7 +29,7 @@ angular.module('evtviewer.select')
 		defaults = _defaults;
 	};
 
-	this.$get = function($log, config, Utils, parsedData, evtInterface, evtNamedEntityRef, evtGenericEntity, evtPinnedElements, evtSourcesApparatus) {
+	this.$get = function($log, config, Utils, parsedData, evtInterface, evtNamedEntityRef, evtGenericEntity, evtPinnedElements, evtSourcesApparatus, evtBox) {
 		var select = {},
 			collection = {},
 			list = [],
@@ -234,6 +234,9 @@ angular.module('evtviewer.select')
 							if (newOption.pages.length > 0 && newOption.pages.indexOf(currentPage) < 0) { // The page is not part of the document
 								evtInterface.updateState('currentPage', newOption.pages[0]);
 							}
+							if (newOption.divs.length > 0) {
+								evtInterface.updateDiv(newOption.value, newOption.divs[0]);
+							}
 							evtInterface.updateUrl();
 						}
 					};
@@ -248,6 +251,96 @@ angular.module('evtviewer.select')
 						return option;
 					};
 					optionList = formatOptionList(parsedData.getDocuments());
+					break;
+				case 'div':
+					callback = function(oldOption, newOption) {
+						if (newOption) {
+							vm.selectOption(newOption);
+							var docId = newOption.doc;
+							evtInterface.updateDiv(docId, newOption.value);
+							var currentView = evtInterface.getState('currentViewMode');
+							if (currentView === 'collation' && newOption.doc === config.mainDocId && evtInterface.getProperty('syncDiv')) {
+								var corresp = parsedData.getDivs()._indexes.corresp[newOption.value];
+								var witDocs = corresp.map(function(divId) {
+									var doc = parsedData.getDiv(divId).doc;
+									evtInterface.updateDiv(doc, divId);
+									return doc;
+								});
+								var witsList = parsedData.getWitnessesList();
+								var wits = witDocs.map(function(doc) {
+									var witness;
+									angular.forEach(witsList, function(wit) {
+										if (parsedData.getWitness(wit).corresp === doc) {
+											witness = wit;
+										}
+									});
+									return witness;
+								});
+								var currentWits = evtInterface.getState('currentWits');
+								angular.forEach(witsList, function(wit) {
+									if (wits.indexOf(wit) >= 0 && currentWits.indexOf(wit) < 0) {
+										evtInterface.addWitness(wit);
+									} else if (wits.indexOf(wit) < 0 && currentWits.indexOf(wit) >= 0) {
+										evtInterface.removeWitness(wit);
+									}
+								});
+								evtBox.alignScrollToDiv(newOption.value);
+							}
+							evtInterface.updateUrl();
+						}
+					};
+					formatOptionList = function(optionList, formattedList, section) {
+						var allDivs = parsedData.getDivs();
+						angular.forEach(optionList, function(divId) {
+							if (allDivs[divId].section === section) {
+								if (!allDivs[divId]._isSubDiv && allDivs[divId].subDivs.length > 0) {
+									allDivs[divId].type = 'groupTitle';
+								}
+								formattedList.push(allDivs[divId]);
+								if (parsedData.getDivs()._indexes.subDivs[divId] && parsedData.getDivs()._indexes.subDivs[divId].length > 0) {
+									formatOptionList(allDivs[divId].subDivs, formattedList, section);
+								}	
+							}
+						});
+					};
+					formatOption = function(option) {
+						return option;
+					};
+					var currentDoc = evtInterface.getState('currentDoc');
+					var div = parsedData.getDiv(evtInterface.getState('currentDivs')[currentDoc]);
+					var section = div ? div.section : 'body';
+					formatOptionList(parsedData.getDivs()._indexes.main[currentDoc], optionList, section);
+					break;
+				case 'witnessDiv':
+					callback = function(oldOption, newOption) {
+						if (newOption) {
+							vm.selectOption(newOption);
+							var docId = newOption.doc;
+							evtInterface.updateDiv(docId, newOption.value);
+							evtInterface.updateUrl();
+						}
+					};
+					formatOptionList = function(optionList, formattedList, section) {
+						var allDivs = parsedData.getDivs();
+						angular.forEach(optionList, function(divId) {
+							if (allDivs[divId].section === section) {
+								if (!allDivs[divId]._isSubDiv && allDivs[divId].subDivs.length > 0) {
+									allDivs[divId].type = 'groupTitle';
+								}
+								formattedList.push(allDivs[divId]);
+								if (parsedData.getDivs()._indexes.subDivs[divId] && parsedData.getDivs()._indexes.subDivs[divId].length > 0) {
+									formatOptionList(allDivs[divId].subDivs, formattedList, section);
+								}
+							}
+						});
+					};
+					formatOption = function(option) {
+						return option;
+					};
+					var currentDoc = parsedData.getDiv(initValue).doc;
+					var div = parsedData.getDiv(evtInterface.getState('currentDivs')[currentDoc]);
+					var section = div ? div.section : 'body';
+					formatOptionList(parsedData.getDivs()._indexes.main[currentDoc], optionList, section);
 					break;
 				case 'edition':
 				case 'comparingEdition':
@@ -398,15 +491,31 @@ angular.module('evtviewer.select')
 					break;
 				case 'witness':
 					optionSelectedValue = initValue;
+					var removeAvailableWit = function(wit) {
+						var currentWits = evtInterface.getState('currentWits');
+						var index = currentWits.indexOf(wit);
+						if (index < 0) {
+							evtInterface.removeAvailableWitness(wit);
+						}
+					};
+					var addAvailableWit = function(wit) {
+						var currentWits = evtInterface.getState('currentWits');
+						var index = currentWits.indexOf(wit);
+						if (index < 0) {
+							evtInterface.addAvailableWitness(wit);
+						}
+					};
 					callback = function(optionSelected, newOption) {
 						vm.collapse();
-						if (optionSelected !== undefined && optionSelected[0] !== undefined) {
-							if (newOption !== undefined) {
-								evtInterface.switchWitnesses(optionSelected[0].value, newOption.value);
-								evtInterface.updateUrl();
-							}
-						} else if (newOption !== undefined) {
+						if (optionSelected && optionSelected[0] && newOption) {
+							removeAvailableWit(newOption.value);
+							evtInterface.switchWitnesses(optionSelected[0].value, newOption.value);
+							addAvailableWit(optionSelected[0].value);
+							evtInterface.updateUrl();
+						} else if (newOption) {
+							removeAvailableWit(newOption.value);
 							evtInterface.addWitness(newOption.value);
+							addAvailableWit(optionSelected[0].value);
 							evtInterface.updateUrl();
 						}
 					};
@@ -632,6 +741,62 @@ angular.module('evtviewer.select')
 					};
 					optionList = formatOptionList(parsedData.getVersionEntries());
 					break;
+				case 'view-mode': {
+					optionSelectedValue = initValue;
+					callback = function(oldOption, newOption) {
+						vm.collapse();
+						vm.selectOption(newOption);
+						if (newOption.value
+								&& newOption.value !== evtInterface.getState('currentViewMode')) {
+							evtInterface.updateState('currentViewMode', newOption.value);
+						}
+					};
+					setIcon = function(iconType) {
+						var evtIcon = '';
+						switch(iconType.toLowerCase()) {
+							case 'mode-imgtxt':
+								evtIcon = 'icon-evt_imgtxt';
+								break;
+							case 'mode-txttxt':
+								evtIcon = 'icon-evt_txttxt';
+								break;
+							case 'mode-collation':
+								evtIcon = 'icon-evt_collation';
+								break;
+							case 'mode-srctxt':
+								evtIcon = 'iconbis-evt_srctxt';
+								break;
+							case 'mode-versions':
+								evtIcon = 'iconbis-evt_versions';
+								break;
+							default:
+								evtIcon = 'icon-evt_txt';
+								break;
+						}
+						return evtIcon;
+					}
+					formatOptionList = function(optionList) {
+						var formattedList = [];
+						for (var i in optionList) {
+							var currentOption = formatOption(optionList[i]);
+							formattedList.push(currentOption);
+						}
+						return formattedList;
+					};
+					formatOption = function(viewMode) {
+						var option = {
+							value: viewMode.viewMode,
+							label: 'VIEW_MODES.' + viewMode.label,
+							title: 'VIEW_MODES.' + viewMode.label,
+							icon: setIcon(viewMode.icon)
+						}
+						return option;
+					};
+					var viewModes = evtInterface.getProperty('availableViewModes').filter(function(viewMode) {
+						return viewMode.visible === true;
+					});
+					optionList = formatOptionList(viewModes);
+				} break;
 			}
 
 			scopeHelper = {

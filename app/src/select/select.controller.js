@@ -11,7 +11,7 @@
  **/
 angular.module('evtviewer.select')
 
-.controller('SelectCtrl', function($log, evtSelect, parsedData) {    
+.controller('SelectCtrl', function($log, evtSelect, parsedData, evtInterface) {    
     var vm = this;
     
     var _console = $log.getInstance('select');
@@ -201,6 +201,10 @@ angular.module('evtviewer.select')
                 case 'document':
                     option = vm.formatOption(parsedData.getDocument(optionValue));
                     break;
+                case 'div':
+                case 'witnessDiv':
+                    option = vm.formatOption(parsedData.getDiv(optionValue));
+                    break;
                 case 'edition': 
                 case 'comparingEdition': 
                     option = vm.formatOption(parsedData.getEdition(optionValue));
@@ -223,6 +227,11 @@ angular.module('evtviewer.select')
                     break;
                 case 'version':
                     option = vm.formatOption(optionValue);
+                    break;
+                case 'view-mode':
+                    option = vm.optionList.find(function(viewMode) {
+                        return viewMode.value === optionValue;
+                    });
                     break;
                 default:
                     if (optionValue === 'NONE' && vm.multiselect ) {

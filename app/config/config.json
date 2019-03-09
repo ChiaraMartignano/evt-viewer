@@ -1,77 +1,101 @@
 {
-
-    "indexTitle": "",
+    "indexTitle": "Avicenna",
     "webSite": "",
     "logoUrl": "",
 
-	"dataUrl": "",
+    "defaultLanguage": "en",
+    "languages": ["en", "it"],
+
+	"dataUrl": "../data/avicenna.xml",
+    "analoguesUrl"     : "../data/analogues.xml",
     "sourcesUrl"       : "",
-    "analoguesUrl"     : "",
     "sourcesTextsUrl" : "",
 
     "defaultViewMode": "readingTxt",
 	"availableViewModes": [{
-                                "label"    : "READING_TEXT",
-                                "icon"     : "reading-txt",
-                                "viewMode" : "readingTxt",
-                                "visible"  : true
-                            },
-                            {
-                                "label"    : "MULTIPLE_RECENSIONS",
-                                "icon"     : "mode-versions",
-                                "viewMode" : "versions",
-                                "visible"  : true
-                            },
-                            {
-                                "label"    : "IMAGE_TEXT",
-                                "icon"     : "mode-imgTxt",
-                                "viewMode" : "imgTxt",
-                                "visible"  : false
-                            },
-                            {
-                                "label"    : "TEXT_TEXT",
-                                "icon"     : "mode-txtTxt",
-                                "viewMode" : "txtTxt",
-                                "visible"  : true
-                            },
-                            {
-                                "label"    : "COLLATION",
-                                "icon"     : "mode-collation",
-                                "viewMode" : "collation",
-                                "visible"  : true
-                            },
-                            {
-                                "label"    : "SOURCE_TEXT",
-                                "icon"     : "mode-srcTxt",
-                                "viewMode" : "srcTxt",
-                                "visible"  : true
-                            }],
-    "defaultEdition": "diplomatic",
-    "showEditionLevelSelector": true,
-
+        "label"    : "READING_TEXT",
+        "icon"     : "reading-txt",
+        "viewMode" : "readingTxt",
+        "visible"  : true
+    },
+    {
+        "label"    : "MULTIPLE_RECENSIONS",
+        "icon"     : "mode-versions",
+        "viewMode" : "versions",
+        "visible"  : true
+    },
+    {
+        "label"    : "IMAGE_TEXT",
+        "icon"     : "mode-imgTxt",
+        "viewMode" : "imgTxt",
+        "visible"  : true
+    },
+    {
+        "label"    : "TEXT_TEXT",
+        "icon"     : "mode-txtTxt",
+        "viewMode" : "txtTxt",
+        "visible"  : true
+    },
+    {
+        "label"    : "COLLATION",
+        "icon"     : "mode-collation",
+        "viewMode" : "collation",
+        "visible"  : true
+    },
+    {
+        "label"    : "SOURCE_TEXT",
+        "icon"     : "mode-srcTxt",
+        "viewMode" : "srcTxt",
+        "visible"  : true
+    }],
+    
+    "defaultEdition": "critical",
+    "showEditionLevelSelector": false,
     "availableEditionLevel": [{
         "value": "critical",
         "label": "Critical",
         "title": "Critical edition",
-        "visible": false
+        "visible": true
     }, {
         "value": "diplomatic",
         "label": "Diplomatic",
         "title": "Diplomatic edition",
-        "visible": true
+        "visible": false
     }, {
         "value": "interpretative",
         "label": "Interpretative",
         "title": "Interpretative edition",
-        "visible": true
+        "visible": false
     }],
 
+    "mainDocId": "",
+    "showDocumentSelector": true,
+    
     "enableXMLdownload" : true,
+    "downloadableFiles": [
+		{
+			"title": "Translated Critical Text",
+			"formats": {
+				"pdf": "../data/download/Edizione_critica.pdf",
+                "xml": "../data/trad.xml",
+                "txt": "../data/download/Edizione_critica.txt"
+			}
+		},
+		{
+			"title": "Version F",
+			"formats": {
+				"pdf": "../data/download/Redazione_F.pdf",
+                "xml": "../data/redazioni/F.xml",
+                "txt": "../data/download/Redazione_F.txt"
+			}
+		}
+	],
 
     "toolPinAppEntries": true,
-    "toolImageTextLinking": true,
-    "namedEntitiesSelector": false,
-
+    "toolHeatMap": true,
+    "toolImageTextLinking": false,
+    
+    "namedEntitiesSelector": true,
     "namedEntitiesToHandle": [{
         "tagName": "persName",
         "label": "Persons",
@@ -81,39 +105,34 @@
         "label": "Places",
         "available": true
     },{
-        "tagName": "orgName",
-        "label": "Organizations",
+        "tagName": "term",
+        "label": "Realia",
         "available": true
     }],
-
-    "otherEntitiesToHandle": [{
-        "tagName": "rolename",
-        "label": "Role Name",
-        "available": false,
-        "color": "#cfc"
-    }, {
-        "tagName": "measure",
-        "label": "Measure",
-        "available": false,
-        "color": "#ffecb3"
-    }],
-
-
-    "toolHeatMap": true,
-    "preferredWitness": "",
-    "skipWitnesses": "",
+    "otherEntitiesToHandle": [],
+    "listsMainContentDef": "<sourceDesc>",
 
 	"listDef": "<listWit>, <listChange>",
 	"versionDef": "<witness>, <change>",
 	"fragmentMilestone": "<witStart>, <witEnd>",
-	"lacunaMilestone": "<lacunaStart>, <lacunaEnd>",
+    "lacunaMilestone": "<lacunaStart>, <lacunaEnd>",
+    "quoteDef"              : "",
+    "analogueDef"           : "",
 	"possibleVariantFilters": "",
 	"possibleLemmaFilters": "resp",
-	"notSignificantVariant": "<orig>, <sic>, [type=orthographic]",
+    "notSignificantVariant": "<orig>, <sic>, [type=orthographic]",
+    
+    "preferredWitness": "",
+    "skipWitnesses": "",
+    "witnessesGroups": [ ],
+    "versions" : ["rec2", "rec1", "rec3"],
 
+    "showReadingExponent": true,
+    "alwaysPositiveApparatus": false,
+    "showInlineCriticalApparatus": false,
+    "showInlineSources": false,
+    "showInlineAnalogues": false,
 	"maxWitsLoadTogether": 5,
-
-    "showDocumentSelector": true,
 
 	"variantColors": {
 		"type": {
@@ -131,22 +150,11 @@
 			"unknown": "rgb(125, 125, 125)"
 		}
 	},
-
 	"variantColorLight": "",
 	"variantColorDark": "",
 	"heatmapColor": "",
 
-    "versions" : [],
-    "witnessesGroups": [ ],
-
-    "quoteDef"              : "<quote>",
-    "analogueDef"           : "<seg>,<ref[type=parallelPassage]>",
-
-    "showReadingExponent": true,
-
-    "showInlineCriticalApparatus": false,
-    "showInlineSources": false,
-    "showInlineAnalogues": false,
+    "elementsWithNumbers": [],
 
     "defaultBibliographicStyle": "Chicago",
 	"allowedBibliographicStyles": {
@@ -156,15 +164,14 @@
 		},
 		"APA": {
 			"label": "APA",
-			"enabled": false
+			"enabled": true
 		},
 		"MLA": {
 			"label": "MLA",
 			"enabled": true
 		}
-	},
+    },
+    "biblRefDef": "<ref[type=biblio]>",
 
-   "virtualKeyboardKeys": [],
-
-    "languages": ["en", "it"]
+    "virtualKeyboardKeys": []
 }

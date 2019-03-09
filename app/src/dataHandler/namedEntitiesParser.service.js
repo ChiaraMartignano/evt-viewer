@@ -14,10 +14,10 @@
 **/
 angular.module('evtviewer.dataHandler')
 
-.service('evtNamedEntitiesParser', function(parsedData, evtParser, config) {
+.service('evtNamedEntitiesParser', function(parsedData, evtParser, config, xmlParser) {
 	var NEparser = {};
 	//TODO retrieve definitions from configurations
-	var listsMainContentDef = '<sourceDesc>';
+	var listsMainContentDef = config.listsMainContentDef || '<sourceDesc>';
 	var listsToParse = [{
 		listDef: '<listPlace>',
 		contentDef: '<place>',
@@ -82,7 +82,7 @@ angular.module('evtviewer.dataHandler')
 			relationsInListDef = '';
 
 		for (var i = 0; i < listsToParse.length; i++) {
-			var listDef = listsMainContentDef.replace(/[<>]/g, '') + ' > ' + listsToParse[i].listDef.replace(/[<>]/g, ''),
+			var listDef = listsMainContentDef.replace(/[<>]/g, '') + ' ' + listsToParse[i].listDef.replace(/[<>]/g, ''),
 				contentDef = listsToParse[i].contentDef.replace(/[<>]/g, ''),
 				listType = listsToParse[i].type || 'generic',
 				listTitle = 'LISTS.'+listType.toUpperCase();
@@ -466,6 +466,9 @@ angular.module('evtviewer.dataHandler')
 				}
 			}
 		});
+		if (contentForLabelDef === '<placeName>') {
+			findMapCoordinates(el, nodeElem);
+		}
 		return el;
 	};
 
@@ -483,8 +486,38 @@ angular.module('evtviewer.dataHandler')
 		el.content[child.tagName].push({
 			text: parsedChild ? parsedChild.innerHTML : child.innerHTML,
 			attributes: evtParser.parseElementAttributes(child) 
-		}); 
+		});
 	};
+	
+	/**
+	 * @ngdoc method
+	 * @name evtviewer.dataHandler.evtNamedEntitiesParser#findMapCoordinates
+	 * @methodOf evtviewer.dataHandler.evtNamedEntitiesParser
+	 *
+	 * @description
+	 * The method will search the <geo> element in order to retrieve the geographic coordinates
+	 * and stor them in the parsed entity object inside of a "map" property.
+	 * 
+	 * @param {Object} el JSON object representing the parsed entity node 
+	 * @param {element} node XML element representing the entity to be parsed
+	*
+	* @author CM
+	*/
+	var findMapCoordinates = function(el, node) {
+		var first = node.outerHTML.search('<geo');
+		if (first >= 0) {
+			var last = node.outerHTML.search('</geo>');
+			var geo = node.outerHTML.substring(first, last);
+			geo = geo.substring(geo.indexOf('>') + 1);
+			var coordinates = geo.split(', ');
+			if (coordinates.length === 2) {
+				el.map = {
+					lat: coordinates[0],
+					lng: coordinates[1]
+				}
+			}
+		}
+	}
 	/**
      * @ngdoc method
      * @name evtviewer.dataHandler.evtNamedEntitiesParser#parseSubEntity
@@ -517,7 +550,7 @@ angular.module('evtviewer.dataHandler')
 				parsedXmlElem;
 
 			if (childElement.nodeType === 1 && listDef.toLowerCase().indexOf('<' + childElement.tagName.toLowerCase() + '>') >= 0 ) {
-				parsedXmlElem = NEparser.parseNamedEntitySubList(childElement, childElement, '<evtNote>');
+				parsedXmlElem = NEparser.parseNamedEntitySubList(childElement, childElement, { skip: '<evtNote>' });
 			} else {
 				parsedXmlElem = evtParser.parseXMLElement(childElement, childElement, {skip: '<evtNote>'});
 			} 
@@ -617,14 +650,14 @@ angular.module('evtviewer.dataHandler')
 	};
 
 	// NAMED ENTITIES OCCURRENCES
-	var getPageIdFromHTMLString = function(HTMLstring) {
+	var getIdFromHTMLString = function(HTMLstring) {
 		var matchPbIdAttr = 'xml:id=".*"',
 			sRegExPbIdAttr = new RegExp(matchPbIdAttr, 'ig'),
 			pbHTMLString = HTMLstring.match(sRegExPbIdAttr);
 		sRegExPbIdAttr = new RegExp('xml:id=(?:"[^"]*"|^[^"]*$)', 'ig');
 		var idAttr = pbHTMLString ? pbHTMLString[0].match(sRegExPbIdAttr) : undefined,
-			pageId = idAttr ? idAttr[0].replace(/xml:id/, '').replace(/(=|\"|\')/ig, '') : '';
-		return pageId;
+			id = idAttr ? idAttr[0].replace(/xml:id/, '').replace(/(=|\"|\')/ig, '') : '';
+		return id;
 	};
 	/**
      * @ngdoc method
@@ -653,34 +686,141 @@ angular.module('evtviewer.dataHandler')
      * 
      * @author CDP
      */
-	NEparser.parseEntitiesOccurrences = function(docObj, refId) {
+	NEparser.parseEntitiesForms = function(docObj, refId) {
 		var doc = docObj && docObj.content ? docObj.content : undefined,
-			docHTML = doc ? doc.outerHTML : undefined,
-			pages = [];
+			docHTML = doc ? doc.outerHTML : undefined;
 		if (docHTML && refId && refId !== '') {
-			var match = '<pb(.|[\r\n])*?\/>(.|[\r\n])*?(?=#' + refId + ')',
-				sRegExInput = new RegExp(match, 'ig'),
-				matches = docHTML.match(sRegExInput),
-				totMatches = matches ? matches.length : 0;
-			for (var i = 0; i < totMatches; i++) {
-				//Since JS does not support lookbehind I have to get again all <pb in match and take the last one
-				var matchOnlyPb = '<pb(.|[\r\n])*?\/>',
-					sRegExOnlyPb = new RegExp(matchOnlyPb, 'ig'),
-					pbList = matches[i].match(sRegExOnlyPb),
-					pbString = pbList && pbList.length > 0 ? pbList[pbList.length - 1] : '';
-				var pageId = getPageIdFromHTMLString(pbString);
-				if (pageId) {
-					var pageObj = parsedData.getPage(pageId);
-					pages.push({ 
-						pageId: pageId, 
-						pageLabel: pageObj ? pageObj.label : pageId,
-						docId: docObj ? docObj.value : '',
-						docLabel: docObj ? docObj.label : '' 
-					});
-				}
+			var type = parsedData.getNamedEntityType(refId),
+					entityTagName = 'term';
+			switch(type) {
+				case 'person': entityTagName = 'persName'; break;
+				case 'place': entityTagName = 'placeName'; break;
+				case 'org': entityTagName = 'orgName'; break;
+				default: entityTagName = 'term';
+			}
+			if (docObj.pages.length > 0) {
+				NEparser.getOccurencesInPages(docObj, refId, entityTagName);
+			} else if (docObj.divs.length > 0) {
+				NEparser.getOccurencesInDivs(docObj, refId, entityTagName);
 			}
 		}
-		return pages;
+	};
+
+	NEparser.getOccurencesInPages = function(docObj, refId, entityTagName) {
+		angular.forEach(docObj.pages, function(pageId) {
+			var pageText = parsedData.getPageText(pageId, docObj.value, 'original');
+					pageText = evtParser.balanceXHTML(pageText),
+					pageObj = parsedData.getPage(pageId);
+			var dom = angular.element(xmlParser.parse(pageText));
+			angular.forEach(dom.find(entityTagName), function(entityElem) {
+				if (entityElem.attributes && entityElem.getAttribute('ref') && entityElem.getAttribute('ref').replace('#', '') === refId) {
+					var occurrence = { 
+						pageId: pageId, 
+						pageLabel: pageObj ? pageObj.label : divId,
+						docId: docObj ? docObj.value : '',
+						docLabel: docObj ? docObj.label : '',
+						text: entityElem.innerHTML 
+					};
+					NEparser.addOccurrence(refId, occurrence);
+				}
+			});
+		});
+	};
+
+	NEparser.getOccurencesInDivs = function(docObj, refId, entityTagName) {
+		var doc = docObj && docObj.content ? docObj.content : undefined,
+				dom = angular.element(doc);				
+		angular.forEach(docObj.divs, function(divId) {
+			var divObj = parsedData.getDiv(divId),
+					divElem;
+			angular.forEach(dom.find('div'), function(div) {
+				if (div.getAttribute('xml:id') === divId) {
+					divElem = angular.element(div);
+				}
+			});
+			angular.forEach(divElem.find(entityTagName), function(entityElem) {
+				if (entityElem.attributes && entityElem.getAttribute('ref') && entityElem.getAttribute('ref').replace('#', '') === refId) {
+					var occurrence = { 
+						divId: divId, 
+						divLabel: divObj ? divObj.label : divId,
+						docId: docObj ? docObj.value : '',
+						docLabel: docObj ? docObj.label : '',
+						text: entityElem.innerHTML 
+					};
+					NEparser.addOccurrence(refId, occurrence);
+				}
+			});
+		});
+	};
+
+	NEparser.addOccurrence = function(refId, occurrence) {
+		var NEObj = parsedData.getNamedEntity(refId);
+		if (!NEObj._forms) {
+			NEObj._forms = {
+				_length: 0,
+				_indexes: []
+			};
+		}
+		if (!NEObj._forms[occurrence.text]) {
+			NEObj._forms[occurrence.text] = {
+				_occurrences: [],
+				_docs: {},
+				_length: 0
+			}
+		}
+		NEObj._forms[occurrence.text]._occurrences.push(occurrence);
+		NEObj._forms[occurrence.text]._length++;
+		NEObj._forms._length++;
+		if (NEObj._forms._indexes.indexOf(occurrence.text) < 0) {
+			NEObj._forms._indexes.push(occurrence.text);
+		}
+		if (!NEObj._forms[occurrence.text]._docs[occurrence.docLabel]) {
+			NEObj._forms[occurrence.text]._docs[occurrence.docLabel] = []
+		}
+		if (occurrence.pageLabel && NEObj._forms[occurrence.text]._docs[occurrence.docLabel].indexOf(occurrence.pageLabel) < 0) {
+			NEObj._forms[occurrence.text]._docs[occurrence.docLabel].push(occurrence.pageLabel);
+		}
+		if (occurrence.divLabel && NEObj._forms[occurrence.text]._docs[occurrence.docLabel].indexOf(occurrence.divLabel) < 0) {
+			NEObj._forms[occurrence.text]._docs[occurrence.docLabel].push(occurrence.divLabel);
+		}		
+	};
+
+	NEparser.getOccurencesInDivs = function(docObj, refId, entityTagName) {
+		var divs = [],
+				doc = docObj && docObj.content ? docObj.content : undefined,
+				dom = angular.element(doc);				
+		docObj.divs.forEach((divId) => {
+			var divObj = parsedData.getDiv(divId),
+					divElem;
+			angular.forEach(dom.find('div'), function(div) {
+				if (div.getAttribute('xml:id') === divId) {
+					divElem = angular.element(div);
+				}
+			});
+			angular.forEach(divElem.find(entityTagName), function(entityElem) {
+				if (entityElem.attributes && entityElem.getAttribute('ref') && entityElem.getAttribute('ref').replace('#', '') === refId) {
+					var occurrence = { 
+						divId: divId, 
+						divLabel: divObj ? divObj.label : divId,
+						docId: docObj ? docObj.value : '',
+						docLabel: docObj ? docObj.label : '',
+						text: entityElem.innerHTML 
+					};
+					NEparser.addOccurrence(refId, occurrence);
+					divs.push(occurrence);
+				}
+			});
+		});
+		return divs;
+	};
+
+	NEparser.addOccurrence = function(refId, occurrence) {
+		var c = refId.charAt(0),
+				NEObj = parsedData.getNamedEntity(refId);
+		if (!NEObj._occurrences) {
+			NEObj._occurrences = [];
+		}
+		NEObj._occurrences.push(occurrence);
 	};
 
 	return NEparser;

@@ -656,14 +656,6 @@ angular.module('evtviewer.box')
                      }
                   });
                }
-               
-					if ((config.showDocumentSelector && parsedData.getDocuments()._indexes.length > 0) || parsedData.getDocuments()._indexes.length > 1) {
-						topMenuList.selectors.push({
-							id: 'document_' + currentId,
-							type: 'document',
-							initValue: evtInterface.getState('currentDoc')
-						});
-					}
 					if (!parsedData.isCriticalEditionAvailable()) {
 						topMenuList.selectors.push({
 							id: 'page_' + currentId,
@@ -671,6 +663,26 @@ angular.module('evtviewer.box')
 							initValue: evtInterface.getState('currentPage')
 						});
 					} else {
+						if (parsedData.getDivs().length > 0) {
+							var docId = config.mainDocId || evtInterface.getState('currentDocument');
+							var currentDiv = docId ? evtInterface.getState('currentDivs')[docId] || parsedData.getDocument(docId).divs.find(function(id) { return parsedData.getDiv(id).section === 'body'})
+							: parsedData.getDocument(parsedData.getDocuments()._indexes[0]).divs.find(function(id) { return parsedData.getDiv(id).section === 'body'});
+							if (currentDiv) {
+								topMenuList.selectors.push({
+									id: 'div_' + currentId,
+									type: 'div',
+									initValue: currentDiv
+								});
+							}
+						}
+						if (evtInterface.getState('currentViewMode') === 'collation') {
+							topMenuList.buttons.splice(0, 0, {
+								title: 'BUTTONS.SYNC_DIV',
+								label: '',
+								icon: 'sync-div',
+								type: 'syncDiv'
+							});
+						}
 						topMenuList.buttons.push({
 							title: 'BUTTONS.WITNESSES_LIST',
 							label: '',
@@ -689,31 +701,14 @@ angular.module('evtviewer.box')
 							});
 						}
 					}
-
-
-					if ((config.showEditionLevelSelector && config.availableEditionLevel.length > 0) || config.availableEditionLevel.length > 1) {
-						if (scope.subtype === 'comparing') {
-							topMenuList.selectors.push({
-								id: 'comparingEditionLevel_' + currentId,
-								type: 'comparingEdition',
-								initValue: evtInterface.getState('currentComparingEdition')
-							});
-						} else {
-							topMenuList.selectors.push({
-								id: 'editionLevel_' + currentId,
-								type: 'edition',
-								initValue: evtInterface.getState('currentEdition')
-							});
-						}
+					if (config.mainDocId && parsedData.getDocument(config.mainDocId).front) {
+						topMenuList.buttons.push({
+							title: 'BUTTONS.INFO_ABOUT_TEXT',
+							label: 'BUTTONS.INFO',
+							icon: 'info-alt',
+							type: 'toggleInfoWit'
+						});
 					}
-
-					topMenuList.buttons.push({
-						title: 'BUTTONS.INFO_ABOUT_TEXT',
-						label: 'BUTTONS.INFO',
-						icon: 'info-alt',
-						type: 'front'
-					});
-
 					appFilters = parsedData.getCriticalEntriesFiltersCollection();
 					if (appFilters.forLemmas > 0) {
 						topMenuList.buttons.push({
@@ -894,13 +889,28 @@ angular.module('evtviewer.box')
 						type: 'witness-page',
 						initValue: witPageId
 					});
-
+					if (parsedData.getDivs().length > 0) {
+						var docId = parsedData.getWitness(vm.witness).corresp;
+						var currentDiv = docId ? evtInterface.getState('currentDivs')[docId] || parsedData.getDocument(docId).divs.find(function(id) { return parsedData.getDiv(id).section === 'body'})
+						: parsedData.getDocument(parsedData.getDocuments()._indexes[0]).divs.find(function(id) { return parsedData.getDiv(id).section === 'body'});
+						if (currentDiv) {
+							topMenuList.selectors.push({
+								id: 'div_' + currentId,
+								type: 'witnessDiv',
+								initValue: currentDiv
+							});
+						}
+					}
+					var currentDoc = parsedData.getWitness(scope.witness).corresp;
+					if (currentDoc && parsedData.getDocument(currentDoc).front) {
+						topMenuList.buttons.push({
+							title: 'BUTTONS.INFO_ABOUT_TEXT',
+							label: 'BUTTONS.INFO',
+							icon: 'info-alt',
+							type: 'toggleInfoWit'
+						});
+					}
 					topMenuList.buttons.push({
-						title: 'BUTTONS.INFO_ABOUT_TEXT',
-						label: 'BUTTONS.INFO',
-						icon: 'info-alt',
-						type: 'toggleInfoWit'
-					}, {
 						title: 'BUTTONS.WITNESS_CLOSE',
 						label: '',
 						icon: 'remove',
@@ -941,7 +951,7 @@ angular.module('evtviewer.box')
 
 						if (vm.witness !== undefined) {
 							// Main content
-							var currentDocId = evtInterface.getState('currentDoc'),
+							var currentDocId = parsedData.getWitness(vm.witness).corresp || evtInterface.getState('currentDoc'),
 								newContent = parsedData.getWitnessText(vm.witness, currentDocId) || undefined;
 							if (newContent === undefined) {
 								var documents = parsedData.getDocuments(),
@@ -1182,7 +1192,8 @@ angular.module('evtviewer.box')
 			collection[currentId] = angular.extend(vm, scopeHelper);
 			list.push({
 				id: currentId,
-				type: currentType
+				type: currentType,
+				witness: scope.witness
 			});
 
 			return collection[currentId];
@@ -1287,6 +1298,26 @@ angular.module('evtviewer.box')
 				}
 			}
 		};
+
+		box.alignScrollToDiv = function(divId) {
+			for (var i in collection) {
+				if (collection[i].scrollToDiv) {
+					var docId = collection[i].type === 'witness' ? parsedData.getWitness(collection[i].witness).corresp : undefined;
+					if (docId) {
+						var corresp = parsedData.getDivs()._indexes.corresp[divId], div;
+						corresp.map(function(id) {
+							if (parsedData.getDiv(id).doc === docId) {
+								div = id;
+							}
+						});
+						collection[i].scrollToDiv(div);
+					} else {
+						collection[i].scrollToDiv(divId);
+					}
+					
+				}
+			}
+		}
 		/**
 	     * @ngdoc method
 	     * @name evtviewer.box.evtBox#alignScrollToQuote

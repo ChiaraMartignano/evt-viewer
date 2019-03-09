@@ -16,13 +16,16 @@ $selector-option-background-color-hover: $base-color-middle;
 
 
 
-.selector{
+.selector {
 	height: 28px;
 	min-width: 80px;
 	
 	margin: 0 4px;
 	position: relative;
-    left: 0;
+  left: 0;
+	&.inDownlaod {
+		position: static !important;
+	}
 
 	display: inline-block;
 	
@@ -81,6 +84,9 @@ $selector-option-background-color-hover: $base-color-middle;
 		position: absolute;
 		left: 0;
 		top:30px;
+		&.inDownload {
+			position: static;
+		}
 
 		overflow-y:auto;
 		background:$selector-background-color;
@@ -158,6 +164,27 @@ $selector-option-background-color-hover: $base-color-middle;
 				background: $selector-option-color;
 				color: $selector-option-background-color;
 			}
+		}
+	}
+
+	&.invertColors {
+		height: 100%;
+		overflow: visible;
+		background: $selector-color;
+		color: $selector-background-color;
+		border: 1px solid $selector-open-option-border-color;
+		font-size: 0.65em;
+		.icon {
+			font-size: 1.8em;
+			position: relative;
+			top: 0.3em;
+			padding-right: 0.25em;
+		}
+		.option_container {
+			top: 34px;
+		}
+		.open_options {
+			height: 100%;
 		}
 	}
 }

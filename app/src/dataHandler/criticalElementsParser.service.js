@@ -20,8 +20,8 @@ angular.module('evtviewer.dataHandler')
 		lemmaDef = '<lem>',
 		readingDef = lemmaDef + ', <rdg>',
 		readingGroupDef = '<rdgGrp>',
-		quoteDef = config.quoteDef || '<quote>',
-		analogueDef = config.analogueDef || '<seg>,<ref[type=parallelPassage]>',
+		quoteDef = config.quoteDef,
+		analogueDef = config.analogueDef,
 		analogueRegExpr = evtParser.createRegExpr(analogueDef);
 
 	// /////////////// //
@@ -49,7 +49,7 @@ angular.module('evtviewer.dataHandler')
      	</pre>
      * @author CDP
      */
-	var parseGenericElement = function(elem) {
+	parser.parseGenericElement = function(elem) {
 		if (config.lacunaMilestone.indexOf('<' + elem.tagName + '>') < 0 && config.fragmentMilestone.indexOf('<' + elem.tagName + '>') < 0) {
 			var genericElement = {
 				tagName: elem.tagName,
@@ -98,7 +98,7 @@ angular.module('evtviewer.dataHandler')
 							genericElement.content.push(parser.parseAnalogue(child));
 						}
 						if (angular.element(child).find(apparatusEntryDef.replace(/[<>]/g, ''))) {
-							genericElement.content.push(parseGenericElement(child));
+							genericElement.content.push(parser.parseGenericElement(child));
 						} else {
 							genericElement.content.push(child.cloneNode(true));
 						}
@@ -111,6 +111,32 @@ angular.module('evtviewer.dataHandler')
 		}
 
 	};
+	/**
+ 	 * @ngdoc function
+   * @name evtviewer.dataHandler.evtCriticalElementsParser#parseElemContents
+   * @methodOf evtviewer.dataHandler.evtCriticalElementsParser
+   *
+   * @description
+   * [PRIVATE] This function will parse a generic XML textual element to
+	 * turn it into a general HTML span element that has the original tagName
+	 * as class.
+	 * @param {element} elem the XML element that has to be parsed
+	 * @returns {element} a HTML element
+	 * @author CM
+	 */
+	var parseElemContents = function(elem) {
+		var htmlElem = document.createElement('span');
+		htmlElem.setAttribute('class', elem.tagName);
+		angular.forEach(elem.childNodes, function(child) {
+			if (child.nodeType === 3) {
+				htmlElem.appendChild(child);
+			} else {
+				childElem = parseElemContents(child);
+				htmlElem.appendChild(childElem);
+			}
+		});
+		return htmlElem;
+	}
 	/**
      * @ngdoc function
      * @name evtviewer.dataHandler.evtCriticalElementsParser#parseAppReading
@@ -212,7 +238,10 @@ angular.module('evtviewer.dataHandler')
 				}
 			} else if (child.nodeType === 1) {
 				if (child.tagName === 'note') {
-					reading.note = child.innerHTML;
+					if (reading.note !== '') {
+						reading.note += ' ';
+					}
+					reading.note += parseElemContents(child).innerHTML;
 				} else if (apparatusEntryDef.indexOf('<' + child.tagName + '>') >= 0) {
 					// Sub apparatus
 					var entryApp = parser.handleAppEntry(child, entry.id);
@@ -255,7 +284,7 @@ angular.module('evtviewer.dataHandler')
 					} else if (analogueRegExpr.test(childXml)) {
 						reading.content.push(parser.parseAnalogue(child));
 					} else if (angular.element(child).find(apparatusEntryDef.replace(/[<>]/g, ''))) {
-						reading.content.push(parseGenericElement(child));
+						reading.content.push(parser.parseGenericElement(child));
 					} else {
 						reading.content.push(child.cloneNode(true));
 					}
@@ -460,7 +489,10 @@ angular.module('evtviewer.dataHandler')
 					entry._indexes.encodingStructure.push(entryObj.id);
 					entry._indexes.subApp.push(entryObj.id);
 				} else if (child.tagName === 'note') {
-					entry.note = child.innerHTML;
+					if (entry.note !== '') {
+						entry.note += ' ';
+					}
+					entry.note += child.innerHTML;
 				}
 			}
 		});
@@ -551,7 +583,7 @@ angular.module('evtviewer.dataHandler')
 
 		var entryLemmaObj = entry.content[entry.lemma];
 		if (entryLemmaObj) {
-			if (!entryLemmaObj.wits || entryLemmaObj.wits.length === 0) {
+			if (config.alwaysPositiveApparatus && (!entryLemmaObj.wits || entryLemmaObj.wits.length === 0)) {
 				entryLemmaObj.autoWits = missingWits;
 			}
 		}
@@ -682,6 +714,7 @@ angular.module('evtviewer.dataHandler')
 				//lem
 				//rdg*
 			},
+			note: '',
 			_indexes: {
 				witMap: {},
 			},
@@ -707,7 +740,10 @@ angular.module('evtviewer.dataHandler')
 		angular.forEach(app.childNodes, function(child) {
 			if (child.nodeType === 1) {
 				if (child.tagName === 'note') {
-					entry.note = child.innerHTML;
+					if (entry.note !== '') {
+						entry.note += ' ';
+					}
+					entry.note += child.innerHTML;
 				} else if (readingGroupDef.indexOf('<' + child.tagName + '>') >= 0) {
 					var ver = parseVersionGroup(entry, child);
 					var bo = ver.lemma !== '';
@@ -738,17 +774,8 @@ angular.module('evtviewer.dataHandler')
      */
     parser.getEntryWitnessReadingText = function(entry, wit) {
 		var spanElement;
-		if (entry !== null) {
-			var entryReadings = entry._indexes.readings._indexes;
+		if (entry) {
 			spanElement = document.createElement('evt-reading');
-
-			if (entry.lemma !== '' && !entry._lacuna && entryReadings.length === 1) {
-				var entryWits = entry.content[entryReadings[0]].wits || [];
-				if (entryWits.length === parsedData.getWitnessesList().length) {
-					spanElement = document.createElement('span');
-					spanElement.className = entry.content[entryReadings[0]]._xmlTagName;
-				}
-			}
 			spanElement.setAttribute('data-app-id', entry.id);
 			/* 
 			    IMPORTANT: data-app-id should be the first attribute added to the element
@@ -756,7 +783,7 @@ angular.module('evtviewer.dataHandler')
 			*/
 			spanElement.setAttribute('data-scope-wit', wit);
 			var readingId = entry._indexes.witMap[wit];
-			if (readingId !== undefined && readingId !== '') {
+			if (readingId) {
 				spanElement.setAttribute('data-reading-id', readingId);
 				var readingContent = entry.content[readingId].content;
 				if (readingContent.length > 0) {
@@ -781,8 +808,11 @@ angular.module('evtviewer.dataHandler')
 							} else if (readingContent[i].type === 'genericElement') {
 								var genericElement = getGenericElementText(readingContent[i], wit);
 								spanElement.appendChild(genericElement);
-							} else {
+							} else if (readingContent[i].nodeType === 1) {
 								spanElement.appendChild(readingContent[i]);
+							} else if (readingContent[i].nodeType === 3) {
+								var text = document.createTextNode(readingContent[i]);
+								spanElement.appendChild(text);
 							}
 						}
 					}
@@ -805,9 +835,9 @@ angular.module('evtviewer.dataHandler')
 				//     }
 				// }
 
-			} else if (entry.lemma) {
+			} else if (entry.lemma && entry.lemma.indexOf('depa-lem') < 0) {
 				spanElement = parser.getEntryLemmaText(entry, wit);
-			} else {
+			} else if (parsedData.getEncodingDetail('variantEncodingMethod') !== 'double-end-point') {
 				var noRdgElement = document.createElement('span');
 				noRdgElement.className = 'empty';
 				noRdgElement.setAttribute('title', 'noRdg');
@@ -1078,7 +1108,7 @@ angular.module('evtviewer.dataHandler')
 		var spanElement,
 			errorElement;
 
-		if (entry !== null) {
+		if (entry) {
 			spanElement = document.createElement('evt-reading');
 			spanElement.setAttribute('data-app-id', entry.id);
 			// IMPORTANT: data-app-id should be the first attribute added to the element
@@ -1089,7 +1119,7 @@ angular.module('evtviewer.dataHandler')
 				var lacunaElement = document.createElement('span');
 				lacunaElement.className = 'lacunaApp icon-evt_note'; // TODO: DA ELIMINARE QUI IL PALLINO
 				spanElement.appendChild(lacunaElement);
-			} else if (entry.lemma !== undefined && entry.lemma !== '') {
+			} else if (entry.lemma && entry.lemma.indexOf('depa-lem') < 0) {
 				spanElement.setAttribute('data-reading-id', entry.lemma);
 				var lemmaContent = entry.content[entry.lemma].content;
 				for (var i in lemmaContent) {
@@ -1122,7 +1152,7 @@ angular.module('evtviewer.dataHandler')
 					if (spanElement !== null) {
 						spanElement.className = 'autoLemma';
 					}
-				} else {
+				} else if (parsedData.getEncodingDetail('variantEncodingMethod') !== 'double-end-point') {
 					errorElement = document.createElement('span');
 					errorElement.className = 'encodingError';
 					errorElement.setAttribute('title', 'General error');
@@ -1156,6 +1186,7 @@ angular.module('evtviewer.dataHandler')
 		}
 		return spanElement;
 	};
+
 	/**
      * @ngdoc method
      * @name evtviewer.dataHandler.evtCriticalElementsParser#getVersionEntryLemma

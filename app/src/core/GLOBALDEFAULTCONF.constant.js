@@ -48,140 +48,134 @@ angular.module('evtviewer.core')
 			active: true
 		}
 	},
-	// Default:
-	// <pre> configUrl: '../../config/config.json' </pre>
-	configUrl: '../../config/config.json',
-   dataUrl          : '',
-
-	logoUrl: '',
-
-	enableXMLdownload: true,
-    // sourcesUrl //
-    // Url of the XML file encoding the list of all the bibliographic references for the sources apparatus.//
-    sourcesUrl       : '',
-    // sourcesTextsUrl //
-    // Path of the folder containing the xml files of the sources texts //
-    sourcesTextsUrl : '',
-    //analoguesUrl//
-    //Url of the XML file encoding the list of all the bibliographic references for the analogues apparatus.//
-    analoguesUrl     : '',
-
-    preferredWitness: 'A',
-	skipWitnesses: '',
-
+	
 	indexTitle: 'EVT Critical Viewer',
 	webSite: '',
+	logoUrl: '',
 
+	defaultLanguage: "en",
+	languages: ['en', 'it'],
+
+		// Default:
+	// <pre> configUrl: '../../config/config.json' </pre>
+	configUrl: '../../config/config.json',
+	dataUrl: '',
+  analoguesUrl: '',
+	sourcesUrl: '',
+	sourcesTextsUrl: '',
+	
+	defaultViewMode: 'readingTxt',
+	availableViewModes: [{
+			label    : 'READING_TEXT',
+			icon     : 'reading-txt',
+			viewMode : 'readingTxt',
+			visible  : true
+	},
+	{
+			label    : 'MULTIPLE_RECENSIONS',
+			icon     : 'mode-versions',
+			viewMode : 'versions',
+			visible  : true
+	},
+	{
+			label    : 'IMAGE_TEXT',
+			icon     : 'mode-imgTxt',
+			viewMode : 'imgTxt',
+			visible  : true
+	},
+	{
+			label    : 'TEXT_TEXT',
+			icon     : 'mode-txtTxt',
+			viewMode : 'txtTxt',
+			visible  : false
+	},
+	{
+			label    : 'COLLATION',
+			icon     : 'mode-collation',
+			viewMode : 'collation',
+			visible  : true
+	},
+	{
+			label    : 'SOURCE_TEXT',
+			icon     : 'mode-srcTxt',
+			viewMode : 'srcTxt',
+			visible  : true
+	}],
 	editionType: 'critical',
-
 	defaultEdition: 'critical',
-
-	showEditionLevelSelector: true,
+	showEditionLevelSelector: false,
 	availableEditionLevel: [{
 		value: 'critical',
 		label: 'Critical',
 		title: 'Critical edition',
-		visible: false
+		visible: true
 	}, {
 		value: 'diplomatic',
 		label: 'Diplomatic',
 		title: 'Diplomatic edition',
-		visible: true
+		visible: false
 	}, {
 		value: 'interpretative',
 		label: 'Interpretative',
 		title: 'Interpretative edition',
-		visible: true
+		visible: false
 	}],
-
+														
+	mainDocId: '',
 	showDocumentSelector: true,
 
-	defaultViewMode: 'readingTxt',
-	availableViewModes: [{
-                                label    : 'READING_TEXT',
-                                icon     : 'reading-txt',
-                                viewMode : 'readingTxt',
-                                visible  : true
-                            },
-                            {
-                                label    : 'MULTIPLE_RECENSIONS',
-                                icon     : 'mode-versions',
-                                viewMode : 'versions',
-                                visible  : true
-                            },
-                            {
-                                label    : 'IMAGE_TEXT',
-                                icon     : 'mode-imgTxt',
-                                viewMode : 'imgTxt',
-                                visible  : true
-                            },
-                            {
-                                label    : 'TEXT_TEXT',
-                                icon     : 'mode-txtTxt',
-                                viewMode : 'txtTxt',
-                                visible  : false
-                            },
-                            {
-                                label    : 'COLLATION',
-                                icon     : 'mode-collation',
-                                viewMode : 'collation',
-                                visible  : true
-                            },
-                            {
-                                label    : 'SOURCE_TEXT',
-                                icon     : 'mode-srcTxt',
-                                viewMode : 'srcTxt',
-                                visible  : true
-                            }],
+	enableXMLdownload: true,
+	downloadableFiles: [
+		{
+			"title": "Translated Critical Text",
+			"formats": {
+				"pdf": "../data/polo/download/Edizione_critica.pdf",
+                "xml": "../data/polo/trad.xml",
+                "txt": "../data/polo/download/Edizione_critica.txt"
+			}
+		},
+		{
+			"title": "Version F",
+			"formats": {
+				"pdf": "../data/polo/download/Redazione_F.pdf",
+                "xml": "../data/polo/redazioni/F.xml",
+                "txt": "../data/polo/download/Redazione_F.txt"
+			}
+		}
+	],
 
-	toolHeatMap: true,
 	toolPinAppEntries: false,
+	toolHeatMap: true,
 	toolImageTextLinking: true,
+
+	// NAMED ENTITIES
+	namedEntitiesSelector: true,
+	namedEntitiesToHandle: [],
+	otherEntitiesToHandle: [],
+	listsMainContentDef: '<back>',
 
 	listDef: '<listWit>, <listChange>',
 	versionDef: '<witness>, <change>',
 	fragmentMilestone: '<witStart>, <witEnd>',
 	lacunaMilestone: '<lacunaStart>, <lacunaEnd>',
+	quoteDef: '',
+	analogueDef: '',
 	possibleVariantFilters: 'type, cause, hand',
 	possibleLemmaFilters: 'resp, cert',
 	notSignificantVariant: '<orig>, <sic>, [type=orthographic]',
 
+  preferredWitness: '',
+	skipWitnesses: '',
+	witnessesGroups: [],
+	versions : ["rec2", "rec1", "rec3"],
+
+	alwaysPositiveApparatus: false,
+	showReadingExponent: true,
+	showInlineCriticalApparatus: true,
+	showInlineSources: false,
+	showInlineAnalogues: false,
 	loadCriticalEntriesImmediately: true,
 	maxWitsLoadTogether: 5,
-
-    /*Versions*/
-    /*Array to encode cases of double or multiple redactions of the text*/
-    /*The array collects the id used inside of the XML file as values of*/
-    /*the @ana attribute on the rdgGrp element.                         */
-    /*The first id will correspond to the default version.              */
-    versions : [],
-
-    /*witnessesGroups*/
-    /*Used to divide the readings of all critical apparatus entries into groups.*/
-    /*The witnesses property is required in order to have the partition.        */
-    /*The groupName is optional: if set the name will be displayed.             */
-    witnessesGroups: [
-        {
-            groupName : 'Grp_1',
-            witnesses : ['V', 'P', 'N', 'M', 'G', 'C', 'R']
-        },
-        {
-            groupName : 'Grp_2',
-            witnesses : ['F', 'D', 'O', 'W', 'M5mg', 'B', 'U']
-        }
-    ],
-
-    /*Definition of the element used within the XML file to encode quotes for the sources apparatus.*/
-    quoteDef    : '<quote>',
-    /*Definition of the element used within the XML file to encode passages for the analogues apparatus.*/
-    analogueDef : '<seg>,<ref[type=parallelPassage]>',
-
-    showReadingExponent: true,
-    showInlineCriticalApparatus: true,
-    showInlineSources: false,
-    showInlineAnalogues: false,
-
-
 
 	variantColors: {},
 	filterColors: {},
@@ -189,11 +183,12 @@ angular.module('evtviewer.core')
 		'rgb(235, 77, 153)', 'rgb(252, 144, 172)', 'rgb(171, 99, 219)', 'rgb(67, 135, 217)',
 		'rgb(163, 207, 81)', 'rgb(238, 194, 66)', 'rgb(228, 99, 220)', 'rgb(124, 113, 232)'
 	],
-
 	variantColorLight: 'rgb(208, 220, 255)',
 	variantColorDark: 'rgb(101, 138, 255)',
 	heatmapColor: 'rgb(255, 108, 63)',
 	xsltUrl: '',
+
+	elementsWithNumbers: ['seg'],
 
 	// BIBLIOGRAPHY
 	defaultBibliographicStyle: 'Chicago',
@@ -211,6 +206,7 @@ angular.module('evtviewer.core')
 			enabled: true
 		}
 	},
+	biblRefDef: '<ref[type=biblio]>',
 	bibliographicEntriesSortBy: {
 		Author: 'BIBLIOGRAPHY.AUTHOR',
 		Year: 'BIBLIOGRAPHY.YEAR',
@@ -222,10 +218,5 @@ angular.module('evtviewer.core')
 		DESC: 'BIBLIOGRAPHY.DESC'
 	},
 
-    // NAMED ENTITIES
-    namedEntitiesSelector: true,
-    namedEntitiesToHandle: [],
-    otherEntitiesToHandle: [],
-
-    languages: ['en', 'it']
+	virtualKeyboardKeys: []
 });

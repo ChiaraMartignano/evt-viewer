@@ -21,8 +21,9 @@ angular.module('evtviewer.dataHandler')
 	var defPageElement = 'pb',
 		defLineBreak = '<lb>',
 		defLine = '<l>',
-		possibleNamedEntitiesDef = '<placeName>, <geogName>, <persName>, <orgName>',
-		possibleNamedEntitiesListsDef = '<listPlace>, <listPerson>, <listOrg>, <list>';
+		possibleNamedEntitiesDef = '<placeName>, <geogName>, <persName>, <orgName>, <term>',
+		possibleNamedEntitiesListsDef = '<listPlace>, <listPerson>, <listOrg>, <list>',
+		elementsWithNumbers = config.elementsWithNumbers || [];
 
 	var projectInfoDefs = {
 		sectionHeaders: '<sourceDesc>, ',
@@ -37,6 +38,7 @@ angular.module('evtviewer.dataHandler')
 	projectInfoDefs.sectionSubHeaders += '<principal>, <langUsage>, <particDesc>, <textClass>, <variantEncoding>, <editorialDecl>, <msIdentifier>, <physDesc>, <history>, <extent>, <editionStmt>';
 	projectInfoDefs.blockLabels += '<edition>, <correction>, <hyphenation>, <interpretation>, <normalization>, <punctuation>, <interpGrp>';
 	projectInfoDefs.blockLabels += '<quotation>, <segmentation>, <stdVals>, <colophon>, <handDesc>, <decoDesc>, <supportDesc>, <origin>';
+	parser.parserProperties = {};
 	// ///////// //
 	// UTILITIES //
 	// ///////// //
@@ -160,7 +162,10 @@ angular.module('evtviewer.dataHandler')
 			// newElement = document.createElement('span');
 			// newElement.className = "textNode";
 			// newElement.appendChild(element);
-		} else if (element.tagName !== undefined && skip.toLowerCase().indexOf('<' + element.tagName.toLowerCase() + '>') >= 0) {
+		} else if (element.tagName !== undefined &&
+			(skip.toLowerCase().indexOf('<' + element.tagName.toLowerCase() + '>') >= 0
+			|| element.className.indexOf('depaAnchor') >= 0
+			|| element.className.indexOf('depaContent') >= 0)) {
 			newElement = element;
 		} else if (element.tagName !== undefined && exclude !== undefined && exclude.toLowerCase().indexOf('<' + element.tagName.toLowerCase() + '>') >= 0) {
 			newElement = document.createTextNode('');
@@ -203,14 +208,11 @@ angular.module('evtviewer.dataHandler')
 
 				} else if (config.namedEntitiesSelector &&
 					possibleNamedEntitiesDef.toLowerCase().indexOf('<' + tagName + '>') >= 0 &&
-					element.getAttribute('ref') !== undefined) { //TODO: Rivedere
+					element.getAttribute('ref')) { //TODO: Rivedere
 					newElement = parser.parseNamedEntity(doc, element, skip);
 				} else {
 					newElement = document.createElement('span');
 					newElement.className = element.tagName !== undefined ? element.tagName : '';
-
-
-
 					if (element.attributes) {
 						for (var k = 0; k < element.attributes.length; k++) {
 							var attribK = element.attributes[k];
@@ -221,6 +223,8 @@ angular.module('evtviewer.dataHandler')
 							}
 						}
 					}
+					parser.parseDivElementInText(element, newElement);
+					parser.addElementNumberInText(element, newElement);
 					if (element.childNodes) {
 						for (var j = 0; j < element.childNodes.length; j++) {
 							var childElement = element.childNodes[j].cloneNode(true);
@@ -229,47 +233,13 @@ angular.module('evtviewer.dataHandler')
 					} else {
 						newElement.innerHTML = element.innerHTML + ' ';
 					}
-
+	
 					if (options.context && options.context === 'projectInfo') {
 						if (newElement.innerHTML.replace(/\s/g, '') !== '') {
-							var labelElement = document.createElement('span'),
-								addLabel = false;
-							labelElement.className = 'label-' + element.tagName;
-							labelElement.innerHTML = '{{ \'PROJECT_INFO.' + parser.camelToUnderscore(element.tagName).toUpperCase() + '\' | translate }}';
-							if (projectInfoDefs.sectionHeaders.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
-								labelElement.className += ' projectInfo-sectionHeader';
-								addLabel = true;
-							} else if (projectInfoDefs.sectionSubHeaders.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
-								labelElement.className += ' projectInfo-sectionSubHeader';
-								addLabel = true;
-							} else if (projectInfoDefs.blockLabels.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
-								labelElement.className += ' projectInfo-blockLabel';
-								addLabel = true;
-							} else if (projectInfoDefs.inlineLabels.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
-								labelElement.className += ' projectInfo-inlineLabel';
-								labelElement.innerHTML += ': ';
-								addLabel = true;
-							}
-							if (projectInfoDefs.changeDef.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
-								var changeText = '';
-								var changeWhen = element.getAttribute(projectInfoDefs.changeWhenDef.replace(/[\[\]]/g, ''));
-								if (changeWhen) {
-									changeText += changeWhen + ' ';
-								}
-								var changeBy = element.getAttribute(projectInfoDefs.changeByDef.replace(/[\[\]]/g, ''));
-								if (changeBy) {
-									changeText += '[' + changeBy + ']';
-								}
-								if (changeText !== '') {
-									newElement.innerHTML = changeText + ' - ' + newElement.innerHTML;
-								}
-							}
-							if (addLabel) {
-								newElement.insertBefore(labelElement, newElement.childNodes[0]);
-							}
+							parser.parseProjectInfo(element, newElement, tagName);
 						}
 					}
-
+	
 					if (tagName === 'lb') {
 						newElement.id = element.getAttribute('xml:id');
 						newElement.appendChild(document.createElement('br'));
@@ -284,10 +254,106 @@ angular.module('evtviewer.dataHandler')
 				}
 			}
 		}
-		if (element.nodeType === 3 || (newElement.innerHTML && newElement.innerHTML.replace(/\s/g, '') !== '')) {
+		if (element.nodeType === 3 || (newElement.innerHTML && newElement.innerHTML.replace(/\s/g, '') !== '')
+		|| (newElement.className && (newElement.className.indexOf('depaAnchor') >= 0 || newElement.className.indexOf('depaContent') >= 0))) {
 			return newElement;
 		} else {
 			return document.createTextNode('');
+		}
+	};
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#parseDivElementInText
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function adds to the new HTML element the id of div in order to guarantee
+	 * a proper functioning of the synchronization and alignment mechanisms in the GUI.
+	 * @param {element} element the XML element that is currently parsed and transformed
+	 * @param {element} newElement the new HTML element corresponding to the XML element that will be
+	 * inserted in the text
+	 * @author CM
+	 */
+	parser.parseDivElementInText = function(element, newElement) {
+		if (!element.tagName || element.tagName !== 'div') { return; }
+		var divId;
+		if (element.attributes && element.getAttribute('xml:id')) {
+			divId = element.getAttribute('xml:id');
+		} else {
+			divId = parser.xpath(element).substr(1);
+		}
+		newElement.setAttribute('id', divId);
+	};
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#addElementNumberInText
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function checks if the number of the element should be shown in the text (according to the
+	 * configuration settings) and creates an HTML span element that has as classes "number" and tag name
+	 * of the element plus "-number", so that the graphic rendering of the number can be modified by the
+	 * editor in the custom-style.css file.
+	 * @param {element} element The XML element that is currently parsed and transformed
+	 * @param {element} newElement The new HTML element corresponding to the XML element that will be inserted in the text
+	 * @author CM
+	 */
+	parser.addElementNumberInText = function(element, newElement) {
+		if (!element.tagName || elementsWithNumbers.indexOf(element.tagName) < 0) { return; }
+		if (element.hasAttribute('n')) {
+			var numberElem = document.createElement('span');
+			numberElem.setAttribute('class', 'number ' + element.tagName + '-number');
+			var numberText = document.createTextNode(element.getAttribute('n'));
+			numberElem.appendChild(numberText);
+			newElement.appendChild(numberElem);
+		}
+	};
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#parseProjectInfo
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function parses the project info contained in the header of the document
+	 * @param {element} element the XML element that is currently parsed and transformed
+	 * @param {element} newElement the new HTML element that will be inserted in the text
+	 * @param {string} tagName the tagname of the element
+	 * @author CM
+	 */
+	parser.parseProjectInfo = function(element, newElement, tagName) {
+		var labelElement = document.createElement('span'),
+			addLabel = false;
+		labelElement.className = 'label-' + element.tagName;
+		labelElement.innerHTML = '{{ \'PROJECT_INFO.' + parser.camelToUnderscore(element.tagName).toUpperCase() + '\' | translate }}';
+		if (projectInfoDefs.sectionHeaders.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
+			labelElement.className += ' projectInfo-sectionHeader';
+			addLabel = true;
+		} else if (projectInfoDefs.sectionSubHeaders.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
+			labelElement.className += ' projectInfo-sectionSubHeader';
+			addLabel = true;
+		} else if (projectInfoDefs.blockLabels.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
+			labelElement.className += ' projectInfo-blockLabel';
+			addLabel = true;
+		} else if (projectInfoDefs.inlineLabels.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
+			labelElement.className += ' projectInfo-inlineLabel';
+			labelElement.innerHTML += ': ';
+			addLabel = true;
+		}
+		if (projectInfoDefs.changeDef.toLowerCase().indexOf('<' + tagName + '>') >= 0) {
+			var changeText = '';
+			var changeWhen = element.getAttribute(projectInfoDefs.changeWhenDef.replace(/[\[\]]/g, ''));
+			if (changeWhen) {
+				changeText += changeWhen + ' ';
+			}
+			var changeBy = element.getAttribute(projectInfoDefs.changeByDef.replace(/[\[\]]/g, ''));
+			if (changeBy) {
+				changeText += '[' + changeBy + ']';
+			}
+			if (changeText !== '') {
+				newElement.innerHTML = changeText + ' - ' + newElement.innerHTML;
+			}
+		}
+		if (addLabel) {
+			newElement.insertBefore(labelElement, newElement.childNodes[0]);
 		}
 	};
 	/**
@@ -329,7 +395,7 @@ angular.module('evtviewer.dataHandler')
 	};
 	/**
      * @ngdoc method
-     * @name evtviewer.dataHandler.evtParser#parseElementAttributes
+     * @name evtviewer.dataHandler.evtParser#parseExternalDocuments
      * @methodOf evtviewer.dataHandler.evtParser
      *
      * @description
@@ -598,10 +664,9 @@ angular.module('evtviewer.dataHandler')
 		if (entityId && entityId !== '') {
 			entityElem.setAttribute('data-entity-id', entityId);
 		}
-		var listType = entityNode.tagName ? entityNode.tagName : 'generic';
+		var listType = entityNode.tagName && entityNode.tagName !== 'term' ? entityNode.tagName : 'generic';
 		entityElem.setAttribute('data-entity-type', listType);
 
-		var entityContent = '';
 		for (var i = 0; i < entityNode.childNodes.length; i++) {
 			var childElement = entityNode.childNodes[i].cloneNode(true),
 				parsedXmlElem;
@@ -823,9 +888,11 @@ angular.module('evtviewer.dataHandler')
 	parser.parseDocuments = function(doc) {
 		var currentDocument = angular.element(doc),
 			defDocElement,
-			defContentEdition = 'body';
+			defContentEdition = 'body',
+			checkMainFront = false;
 		if (currentDocument.find('text group text').length > 0) {
 			defDocElement = 'text group text';
+			checkMainFront = true;
 		} else if (currentDocument.find('text').length > 0) {
 			defDocElement = 'text';
 		} else if (currentDocument.find('div[subtype="edition_text"]').length > 0) {
@@ -833,72 +900,232 @@ angular.module('evtviewer.dataHandler')
 			defContentEdition = 'div';
 		}
 
-		var frontDef = '<front>',
-			biblDef = '<biblStruct>';
+		parser.parserProperties['defDocElement'] = defDocElement;
+		parser.parserProperties['defContentEdition'] = defContentEdition;
 
 		parsedData.setCriticalEditionAvailability(currentDocument.find(config.listDef.replace(/[<>]/g, '')).length > 0);
 
 		angular.forEach(currentDocument.find(defDocElement),
 			function(element) {
-				var newDoc = {
-					value: element.getAttribute('xml:id') || parser.xpath(doc).substr(1) || 'doc_' + (parsedData.getDocuments()._indexes.length + 1),
-					label: element.getAttribute('n') || 'Doc ' + (parsedData.getDocuments()._indexes.length + 1),
-					title: element.getAttribute('n') || 'Document ' + (parsedData.getDocuments()._indexes.length + 1),
-					content: element,
-					front: undefined,
-					pages: [] // Pages will be added later
-				};
-				var docFront = element.querySelectorAll(frontDef.replace(/[<\/>]/ig, ''));
-				if (docFront && docFront[0]) {
-					var frontElem = docFront[0].cloneNode(true),
-						biblRefs = frontElem.querySelectorAll(biblDef.replace(/[<\/>]/ig, ''));
-					if (biblRefs) {
-						for (var i = biblRefs.length - 1; i >= 0; i--) {
-							var evtBiblElem = document.createElement('evt-bibl-elem'),
-								biblElem = biblRefs[i],
-								biblId = biblElem.getAttribute('xml:id') || parser.xpath(biblElem).substr(1);
-
-							evtBiblElem.setAttribute('data-bibl-id', biblId);
-							biblElem.parentNode.replaceChild(evtBiblElem, biblElem);
-						}
-					}
-					var parsedContent = parser.parseXMLElement(element, frontElem, {
-							skip: biblDef + '<evt-bibl-elem>'
-						}),
-						frontAttributes = parser.parseElementAttributes(frontElem);
-					newDoc.front = {
-						attributes: frontAttributes,
-						parsedContent: parsedContent && parsedContent.outerHTML ? parsedContent.outerHTML.trim() : '',
-						originalContent: frontElem.outerHTML
-					};
-				}
-
-				for (var j = 0; j < element.attributes.length; j++) {
-					var attrib = element.attributes[j];
-					if (attrib.specified) {
-						newDoc[attrib.name.replace(':', '-')] = attrib.value;
-					}
-				}
-				parsedData.addDocument(newDoc);
-				parser.parsePages(element, newDoc.value);
-				
-				if (config.defaultEdition !== 'critical' || !parsedData.isCriticalEditionAvailable()) {
-					// Split pages works only on diplomatic/interpretative edition
-					// In critical edition, text will be splitted into pages for each witness
-					config.defaultEdition = 'diplomatic';
-					var pages = parsedData.getPages();
-					var newDocPages = newDoc.pages;
-					angular.forEach(angular.element(element).find(defContentEdition),
-						function(editionElement) {
-							//editionElement.innerHTML = parser.splitLineBreaks(element, defContentEdition);
-							parser.splitPages(pages, editionElement, newDoc.value, defContentEdition, newDocPages);
-						});
-				}
+				parser.parseDocument(element, doc);
 			});
+		if (checkMainFront) {
+			var frontDoc = {},
+					frontElem = currentDocument.find('text')[0]
+			parser.parseFront(frontDoc, frontElem);
+			parsedData.updateMainFront(frontDoc.front);
+		}
 		console.log('## PAGES ##', parsedData.getPages());
 		console.log('## Documents ##', parsedData.getDocuments());
+		console.log('## DIVS ##', parsedData.getDivs())
 		return parsedData.getDocuments();
 	};
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#parseDocument
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function creates an object that represents all the information about the document
+	 * and that will be stored in the parsed data. The object's properties are:
+	 * - value: a unique identifier to refer the document in the document collection
+	 * - label and title: the strings that will be used in the GUI to refer the document
+	 * - content: the XML element taht represents the document itself
+	 * - front: an object that represents the front matter of the document if defined
+	 * - pages: an array of the id of the pages that are contained in the document
+	 * - divs: an array of the id of the divs that are contained in the document
+	 * @param {element} element the XML element that represents the document
+	 * @param {element} doc the XML file that contains the edition
+	 * @author CM
+	 */
+	parser.parseDocument = function(element, doc) {
+		var newDoc = {
+			value: element.getAttribute('xml:id') || parser.xpath(doc).substr(1) || 'doc_' + (parsedData.getDocuments()._indexes.length + 1),
+			label: '',
+			title: '',
+			content: element,
+			front: undefined,
+			pages: [], // Pages will be added later
+			divs: []
+		};
+		for (var j = 0; j < element.attributes.length; j++) {
+			var attrib = element.attributes[j];
+			if (attrib.specified) {
+				newDoc[attrib.name.replace(':', '-')] = attrib.value;
+			}
+		}
+		parser.createTitle(newDoc, 'Doc');
+		parser.parseFront(newDoc, element);
+		parsedData.addDocument(newDoc);
+		parser.parsePages(element, newDoc.value);
+		if (parser.parserProperties['defContentEdition'] === 'body') {
+			var front = element.querySelector('front'),
+					body = element.querySelector('body');
+			if (front) {
+				parser.parseDivs(front, newDoc.value, 'front');
+			}
+			parser.parseDivs(body, newDoc.value, 'body');		
+		} else {
+			parser.parseDivs(element, newDoc.value, 'body');
+		}
+		if (config.defaultEdition !== 'critical' || !parsedData.isCriticalEditionAvailable()) {
+			// Split pages works only on diplomatic/interpretative edition
+			// In critical edition, text will be splitted into pages for each witness
+			config.defaultEdition = 'diplomatic';
+			var pages = parsedData.getPages();
+			var newDocPages = newDoc.pages;
+			angular.forEach(angular.element(element).find(parser.parserProperties['defContentEdition']),
+				function(editionElement) {
+					//editionElement.innerHTML = parser.splitLineBreaks(element, defContentEdition);
+					parser.splitPages(pages, editionElement, newDoc.value, parser.parserProperties['defContentEdition'], newDocPages);
+				});
+		}
+	}
+	/**
+	* @ngdoc method
+  * @name evtviewer.dataHandler.evtParser#parseDivs
+  * @methodOf evtviewer.dataHandler.evtParser
+	* @description
+	* The function loops through the divs in the document XML element and calls the
+	* parseDiv function for each.
+	* @param {element} doc the document XML element
+	* @param {string} docId the id of the document object
+	* @param {string} section the section as XML structural tag where the div is located (front, text, back)
+	* @author CM
+	*/
+	parser.parseDivs = function(doc, docId, section) {
+		var currentDocument = angular.element(doc);
+		angular.forEach(currentDocument.children('div'), function(element) {
+			parser.parseDiv(element, docId, section);
+		});
+	};
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#parseDiv
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function creates an object that represents all the information about the div
+	 * and that will be stored in the parsed data. The object's properties are:
+	 * - doc: the id of the document the div is contained in
+	 * - section: the section where the div is located
+	 * - subDivs: an array of ids of the divs that are contained inside the div
+	 * - title: the name of the div that has to be shown in the GUI
+	 * - value: the id of the div
+	 * - _isSubDiv: a boolean that states whether the div is nested in another div element
+	 * @param {element} element the XML element that represents the div
+	 * @param {string} docId the id of the document object
+	 * @param {string} section the section as XML structural tag where the div is located (front, text, back)
+	 * @author CM
+	 */
+	parser.parseDiv = function(element, docId, section) {
+		var newDiv = {
+			doc: docId,
+			section: section,
+			subDivs: [],
+			title: '',
+			value: '',
+			_isSubDiv: parser.isNestedInElem(element, 'div')
+		};
+		angular.forEach(Object.values(element.attributes), function(attr) {
+			if (attr.specified) {
+				newDiv[attr.name.replace(':', '-')] = attr.value;
+			}
+		});
+		if (!newDiv["xml-id"]) {
+			newDiv["xml-id"] = parser.xpath(element).substr(1);
+		}
+		if (newDiv.corresp) {
+			newDiv.corresp = newDiv.corresp.replace('#', '').split(' ');
+		}
+		newDiv.value = newDiv['xml-id'] || 'div_' + (parsedData.getDivs().length + 1);
+		parser.createTitle(newDiv, 'Div');
+		var elem = angular.element(element);
+		angular.forEach(elem.children('div'), function(child) {
+			newDiv.subDivs.push(parser.parseDiv(child, docId, section).value);
+		});
+		parsedData.addDiv(newDiv, docId);
+		return newDiv;
+	}
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#createTitle
+   * @methodOf evtviewer.dataHandler.evtParser
+	 * @description
+	 * The function creates for different types of objects the label that will be used in the GUI.
+	 * @param {object} parsedElement the object that represents the information retrieved by the parsed element
+	 * @param {string} tag the tagName of the XML element
+	 * @author CM
+	 */
+	parser.createTitle = function(parsedElement, tag) {
+		if (parsedElement.type) {
+			parsedElement.title += parsedElement.type.substr(0,1).toUpperCase() + parsedElement.type.substr(1);
+		} else {
+			parsedElement.title += tag;
+		}
+		if (parsedElement.subtype) {
+			parsedElement.title += ' - ' + parsedElement.subtype.substr(0,1).toUpperCase() + parsedElement.subtype.substr(1);
+		}
+		parsedElement.title += ' ';
+		switch (tag) {
+			case 'Div': {
+				parsedElement.title += parsedElement.n || parsedData.getDivs().length + 1;
+			} break;
+			case 'Doc': {
+				var wit, corresp = parsedData.getWitnessesList().find(function(witId) {
+					wit = witId;
+					return parsedData.getWitness(witId).corresp === parsedElement.value;
+				});
+				if (corresp) {
+					parsedElement.title += wit;
+				} else {
+					parsedElement.title += parsedElement.n || parsedData.getDocuments()._indexes.length + 1;
+				}
+			}
+		}
+		parsedElement.label = parsedElement.title;
+	}
+
+	/**
+	 * @ngdoc method
+   * @name evtviewer.dataHandler.evtParser#parseFront
+	 * @description
+	 * The function parses the front contents and possible biblographic references.
+	 * The data is then stored in the document object as the "front" property.
+	 * @param {object} newDoc the object that contains the data parsed about the document
+	 * @param {element} element the XML element that represents the front matter of the document
+	 * @author CM
+	 */
+	parser.parseFront = function(newDoc, element) {
+		var frontDef = '<front>',
+			  biblDef = '<biblStruct>';
+		var docFront = element.querySelectorAll(frontDef.replace(/[<\/>]/ig, ''));
+		if (docFront && docFront[0]) {
+			var frontElem = docFront[0].cloneNode(true),
+					biblRefs = frontElem.querySelectorAll(biblDef.replace(/[<\/>]/ig, ''));
+			if (biblRefs) {
+				for (var i = biblRefs.length - 1; i >= 0; i--) {
+					var evtBiblElem = document.createElement('evt-bibl-elem'),
+						biblElem = biblRefs[i],
+						biblId = biblElem.getAttribute('xml:id') || parser.xpath(biblElem).substr(1);
+
+					evtBiblElem.setAttribute('data-bibl-id', biblId);
+					biblElem.parentNode.replaceChild(evtBiblElem, biblElem);
+				}
+			}
+			var parsedContent = parser.parseXMLElement(element, frontElem, {
+					skip: biblDef + '<evt-bibl-elem>'
+				}),
+				frontAttributes = parser.parseElementAttributes(frontElem);
+			newDoc.front = {
+				attributes: frontAttributes,
+				parsedContent: parsedContent && parsedContent.outerHTML ? parsedContent.outerHTML.trim() : '',
+				originalContent: frontElem.outerHTML
+			};
+		}
+	}
+
 	/**
      * @ngdoc method
      * @name evtviewer.dataHandler.evtParser#splitLineBreaks

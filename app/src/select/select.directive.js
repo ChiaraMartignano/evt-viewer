@@ -25,7 +25,7 @@
 **/
 angular.module('evtviewer.select')
 
-.directive('evtSelect', function($timeout, evtSelect, evtInterface, evtPinnedElements) {
+.directive('evtSelect', function($timeout, evtSelect, evtInterface, evtPinnedElements, parsedData) {
     return {
         restrict: 'E',
         scope: {
@@ -127,6 +127,27 @@ angular.module('evtviewer.select')
                     return evtInterface.getState('currentDoc');
                 }, function(newItem, oldItem) {
                     if (oldItem !== newItem) {
+                        currentSelect.selectOptionByValue(newItem);
+                    }
+                }, true); 
+            }
+
+            if (scope.type === 'div' || scope.type === 'witnessDiv') {
+                scope.$watch(function() {
+                    var currentDoc = evtInterface.getState('currentDoc');
+                    var witness = scope.$parent.vm.witness;
+                    if (scope.type === 'witnessDiv' && witness) {
+                        currentDoc = parsedData.getWitness(witness).corresp;
+                    }
+                    return evtInterface.getState('currentDivs')[currentDoc];
+                }, function(newItem, oldItem) {
+                    if (oldItem !== newItem) {
+                        var oldDiv = parsedData.getDiv(oldItem),
+                            newDiv = parsedData.getDiv(newItem);
+                        if (oldDiv && newDiv && oldDiv.section !== newDiv.section) {
+                            currentSelect.optionList = []
+                            currentSelect.formatOptionList(parsedData.getDivs()._indexes.main[newDiv.doc], currentSelect.optionList, newDiv.section)
+                        }
                         currentSelect.selectOptionByValue(newItem);
                     }
                 }, true); 

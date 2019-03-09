@@ -68,6 +68,7 @@ angular.module('evtviewer.interface')
         currentViewMode  : undefined,
         currentDoc       : undefined,
         currentPage      : undefined,
+        currentDivs      : { },
         currentWits      : undefined,
         currentWitsPages : undefined,
         currentEdition   : undefined,
@@ -86,6 +87,7 @@ angular.module('evtviewer.interface')
         currentApparatus   : undefined,
         currentQuote       : undefined,
         currentAnalogue    : undefined,
+        currentNamedEntity    : undefined,
         currentSource      : undefined,
         currentSourceText  : undefined,
         currentVersions    : undefined,
@@ -133,7 +135,10 @@ angular.module('evtviewer.interface')
         isSourceLoading    : false,
         parsedSourcesTexts : [ ],
         availableVersions  : [ ],
-        versionSelector    : false
+        versionSelector    : false,
+        syncDiv            : false,
+        tabsContainerOpenedContent: '',
+        tabsContainerOpenedTab: ''
     };
     /**
      * @ngdoc property
@@ -178,7 +183,7 @@ angular.module('evtviewer.interface')
 
                 // Setting available languages and defaults
                 evtTranslation.setLanguages(config.languages);
-                var userLangKey = evtTranslation.getUserLanguage(),
+                var userLangKey = config.defaultLanguage ? config.defaultLanguage : evtTranslation.getUserLanguage(),
                     fallbackLangKey = evtTranslation.getFallbackLanguage();
                 evtTranslation.setFallbackLanguage(fallbackLangKey);
                 evtTranslation.setLanguage(userLangKey);
@@ -233,14 +238,16 @@ angular.module('evtviewer.interface')
                       if (currentDocFirstLoad !== undefined){
 
                           // Parse critical entries
-                          if (config.loadCriticalEntriesImmediately){
-                              promises.push(evtCriticalApparatusParser.parseCriticalEntries(currentDocFirstLoad.content).promise);
-                          }
+                        if (parsedData.getEncodingDetail('variantEncodingLocation') === 'internal') {
+                            if (config.loadCriticalEntriesImmediately) {
+                                promises.push(evtCriticalApparatusParser.parseCriticalEntries(currentDocFirstLoad.content).promise);
+                            }
 
-                          // Parse the versions entries
-                          if (config.versions.length > 1) {
-                              promises.push(evtCriticalApparatusParser.parseVersionEntries(currentDocFirstLoad.content).promise);
-                          }
+                            // Parse the versions entries
+                            if (config.versions.length > 1) {
+                                promises.push(evtCriticalApparatusParser.parseVersionEntries(currentDocFirstLoad.content).promise);
+                            }
+                        }
 
                           // Parse critical text
                           if ((config.editionType === 'critical' || config.editionType === 'multiple') && parsedData.isCriticalEditionAvailable()) {
@@ -792,6 +799,10 @@ angular.module('evtviewer.interface')
         mainInterface.updateWitnessesPage = function(witness, pageId) {
             state.currentWitsPages[witness] = pageId;
         };
+        
+        mainInterface.updateDiv = function(docId, divId) {
+            state.currentDivs[docId] = divId;
+        };
         /**
          * @ngdoc method
          * @name evtviewer.interface.evtInterface#addWitness
@@ -803,13 +814,29 @@ angular.module('evtviewer.interface')
          * @todo Add scroll to new box added
          */
         mainInterface.addWitness = function(newWit) {
-            // if (mainInterface.existCriticalText()) {
-            //     state.currentWits.unshift(newWit);
-            // } else {
-                state.currentWits.push(newWit);
-            // }
+            var pos = findWitnessPosition(newWit, state.currentWits);
+            state.currentWits.splice(pos, 0, newWit);
             mainInterface.removeAvailableWitness(newWit);
         };
+
+        var findWitnessPosition = function(wit, list) {
+            var witList = parsedData.getWitnessesList();
+            var witPosition = witList.indexOf(wit),
+                itemPosition = witList.indexOf(list[0]),
+                position = 0;
+            while (position < list.length && itemPosition <= witPosition) {
+                position++
+                itemPosition = witList.indexOf(list[position]);
+            }
+            return position;
+        }
+
+        mainInterface.addAvailableWitness = function(wit) {
+            if (properties.availableWitnesses.indexOf(wit) < 0) {
+                var pos = findWitnessPosition(wit, properties.availableWitnesses);
+                properties.availableWitnesses.splice(pos, 0, wit);
+            }
+        }
         /**
          * @ngdoc method
          * @name evtviewer.interface.evtInterface#addWitnessAtIndex
@@ -837,9 +864,7 @@ angular.module('evtviewer.interface')
                 state.currentWits.splice(witIndex, 1);
                 delete state.currentWitsPages[wit];
             }
-            if (properties.availableWitnesses.indexOf(wit) < 0) {
-                properties.availableWitnesses.push(wit);
-            }
+            mainInterface.addAvailableWitness(wit);
         };
         /**
          * @ngdoc method
@@ -949,10 +974,7 @@ angular.module('evtviewer.interface')
                 witIds = [],
                 witPageIds = {},
                 appId,
-                quoteId,
-                analogueId,
-                sourceId,
-                apparatusId;
+                divId;
 
             // VIEW MODE
             if (params.viewMode !== undefined) {
@@ -1019,6 +1041,13 @@ angular.module('evtviewer.interface')
                     docId = documents[documents._indexes[0]].value || undefined;
                 }
             }
+            
+            // DIV/SECTION
+            if (params.s && parsedData.getDiv(params.s)) {
+                divId = params.s;
+            } else if (parsedData && parsedData.getDocument(docId)) {
+                divId = parsedData.getDocument(docId).divs[0];
+            }
             // WITNESSES
             var totWits;
             if (params.ws !== undefined) {
@@ -1083,6 +1112,12 @@ angular.module('evtviewer.interface')
             if ( pageId !== undefined ) {
                 mainInterface.updateState('currentPage', pageId);
             }
+            
+            if ( divId ) {
+                if (docId) {
+                    mainInterface.updateDiv(docId, divId);
+                }
+            }
 
             if ( docId !== undefined ) {
                 mainInterface.updateState('currentDoc', docId);
@@ -1112,10 +1147,12 @@ angular.module('evtviewer.interface')
          */
         mainInterface.updateUrl = function() {
             var viewMode   = state.currentViewMode,
+                docId = state.currentDoc,
                 searchPath = '';
 
                 searchPath += state.currentDoc === undefined ? '' : (searchPath === '' ? '' : '&')+'d='+state.currentDoc;
                 searchPath += state.currentPage === undefined ? '' : (searchPath === '' ? '' : '&')+'p='+state.currentPage;
+                searchPath += !state.currentDivs[docId] ? '' : (searchPath === '' ? '' : '&')+'s='+state.currentDivs[docId];
                 searchPath += state.currentEdition === undefined ? '' : (searchPath === '' ? '' : '&')+'e='+state.currentEdition;
                 searchPath += state.currentComparingEdition === undefined ? '' : (searchPath === '' ? '' : '&')+'ce='+state.currentComparingEdition;
                 if (viewMode === 'collation') {

@@ -27,6 +27,16 @@ angular.module('evtviewer.reading')
     // 
     // Control function
     // 
+
+    var changeRangeStatus = function(property, className) {
+        angular.forEach(vm.range, function(el) {
+            if (property && el.className.indexOf(className) < 0) {
+                el.className += ' ' + className;
+            } else if (!property && el.className.indexOf(className) >= 0) {
+                el.className = el.className.replace(' ' + className, '');
+            }
+        });
+    }
     /**
      * @ngdoc method
      * @name evtviewer.reading.controller:ReadingCtrl#mouseOver
@@ -38,6 +48,9 @@ angular.module('evtviewer.reading')
      */
     this.mouseOver = function() {
         vm.over = true;
+        if (vm.overlap && vm.range) {
+            changeRangeStatus(vm.over, 'over');
+        }
     };
     /**
      * @ngdoc method
@@ -50,6 +63,9 @@ angular.module('evtviewer.reading')
      */
     this.mouseOut = function() {
         vm.over = false;
+        if (vm.overlap && vm.range) {
+            changeRangeStatus(vm.over, 'over');
+        }
     };
     /**
      * @ngdoc method
@@ -62,7 +78,11 @@ angular.module('evtviewer.reading')
      */
     this.setSelected = function() {
         vm.selected = true;
+        if (vm.overlap && vm.range) {
+            changeRangeStatus(vm.selected, 'selected');
+        }
     };
+
     /**
      * @ngdoc method
      * @name evtviewer.reading.controller:ReadingCtrl#unselect
@@ -74,6 +94,9 @@ angular.module('evtviewer.reading')
      */
     this.unselect = function() {
         vm.selected = false;
+        if (vm.overlap && vm.range) {
+            changeRangeStatus(vm.selected, 'selected');
+        }
     };
     /**
      * @ngdoc method
@@ -136,7 +159,9 @@ angular.module('evtviewer.reading')
      * @param {event} $event mouseover/mouseout event
      */
     this.toggleOverAppEntries = function($event) {
-        $event.stopPropagation();
+        if ($event) {
+            $event.stopPropagation();
+        }
         if ( !vm.hidden ) {
             if ( vm.over === false ) {
                 evtReading.mouseOverByAppId(vm.appId);
@@ -215,7 +240,9 @@ angular.module('evtviewer.reading')
      * @param {event} $event click event
      */
     this.callbackClick = function($event) {
-        $event.stopPropagation();
+        if ($event) {
+            $event.stopPropagation();
+        }
         if (vm.over) {
             vm.toggleSelectAppEntries($event);
             if (!vm.isSelect() || (vm.apparatus.inline && !vm.apparatus.opened)){
@@ -247,9 +274,9 @@ angular.module('evtviewer.reading')
      * @returns {string} style rules to customize the background color
      */
     this.backgroundColor = function(){
-        if (vm.type === 'variant') {
+        if (vm.type === 'variant' && $scope.$parent.vm.state.filters && $scope.$parent.vm.state.filters._totActive > 0) {
             return colorFilters();
-        } else {
+        } else if ($scope.$parent.vm.state.heatmap) {
             return colorVariance();
         }
     };

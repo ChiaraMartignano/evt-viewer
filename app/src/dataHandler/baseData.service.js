@@ -25,7 +25,7 @@
 **/
 angular.module('evtviewer.dataHandler')
 
-.service('baseData', function($log, $q, $http, config, xmlParser, evtParser, evtCriticalApparatusParser, evtSourcesParser, evtProjectInfoParser, evtPrimarySourcesParser, evtAnaloguesParser, evtDialog, evtBibliographyParser, evtNamedEntitiesParser, evtSearch) {
+.service('baseData', function($log, $q, $http, config, xmlParser, evtParser, evtCriticalApparatusParser, evtSourcesParser, evtProjectInfoParser, evtPrimarySourcesParser, evtAnaloguesParser, evtDialog, evtBibliographyParser, evtNamedEntitiesParser, evtSearch, parsedData) {
     var baseData     = {},
         state        = {
             XMLDocuments: [],
@@ -38,6 +38,7 @@ angular.module('evtviewer.dataHandler')
         docElements;
 
     var _console = $log.getInstance('baseData');
+    var XPointersElem = {};
 
     /**
      * @ngdoc method
@@ -191,14 +192,14 @@ angular.module('evtviewer.dataHandler')
         // Parse Zones
         evtPrimarySourcesParser.parseZones(docElements); //TODO: Decide if it is necessary to move this somewhere else
 
+        // Parse witnesses list
+        evtCriticalApparatusParser.parseWitnesses(docElements);
+        
         // Parse documents
         evtParser.parseDocuments(docElements);
 
-        // Parse witnesses list
-        evtCriticalApparatusParser.parseWitnesses(docElements);
-
         // Parse the Sources Apparatus entries (@author: CM)
-        if (config.quoteDef !== '') {
+        if (config.quoteDef) {
             var promiseQuote = [];
             promiseQuote.push(evtSourcesParser.parseQuotes(docElements));
             $q.all(promiseQuote).then(function() {
@@ -211,7 +212,7 @@ angular.module('evtviewer.dataHandler')
         }
 
         // Parse the Analogues Apparatus entries (@author: CM)
-        if (config.analogueDef !== '') {
+        if (config.analogueDef) {
             if (config.analoguesUrl === '') {
                 evtAnaloguesParser.parseAnalogues(docElements, '');
             } else {
@@ -229,6 +230,17 @@ angular.module('evtviewer.dataHandler')
    
        // Parse Glyphs
        evtParser.parseGlyphs(docElements);
+
+       if (parsedData.getEncodingDetail('variantEncodingLocation') !== 'internal') {
+        if (config.loadCriticalEntriesImmediately){
+            evtCriticalApparatusParser.parseCriticalEntries(docElements);
+        }
+
+        // Parse the versions entries
+        if (config.versions.length > 1) {
+            evtCriticalApparatusParser.parseVersionEntries(docElements);
+        }
+       }
    
        // Init Search
        //evtSearch.initSearch(docElements);
@@ -262,7 +274,14 @@ angular.module('evtviewer.dataHandler')
                     .then(function(response) {
                         includedFilesLoaded++;
                         var includedDoc = xmlParser.parse(response.data),
+                            includedTextElem;
+                        if (fileXpointer) {
+                            var dom = angular.element(includedDoc)[0];
+                            findXPointerElem(fileXpointer, dom);
+                            includedTextElem = XPointersElem[fileXpointer];
+                        } else {
                             includedTextElem = includedDoc.getElementsByTagName('text')[0];
+                        }
                         element.parentNode.replaceChild(includedTextElem, element);
                         if (includedFilesLoaded === totFilesToInclude) {
                             deferred.resolve('success');
@@ -283,6 +302,17 @@ angular.module('evtviewer.dataHandler')
         }
         return deferred;
     };
+
+    var findXPointerElem = function(xpointer, doc) {
+        doc.childNodes.forEach(function(node) {
+            if (node.attributes && node.hasAttribute('xml:id') && node.getAttribute('xml:id') === xpointer) {
+                XPointersElem[xpointer] = node;
+                return node;
+            } else if (node.childNodes && node.childNodes.length > 0) {
+                return findXPointerElem(xpointer, node);
+            }
+        });
+    }
 
     return baseData;
 });

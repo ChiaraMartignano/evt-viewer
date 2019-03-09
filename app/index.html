@@ -11,6 +11,7 @@
 		<!-- build:css(.) styles/vendor.css -->
 		<!-- bower:css -->
 		<link rel="stylesheet" href="bower_components/keyboard/css/keyboard.css" />
+		<link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
 		<!-- endbower -->
 		<!-- endbuild -->
 
@@ -47,35 +48,18 @@
 			</a>
 			<div class="globalMenu">
 				<div class="viewModeMenu">
-					<button-switch
-							title="VIEW_MODES.{{::mode.label}}"
-							class="mode-view"
-							data-label=""
-							data-icon="{{::mode.icon}}"
-							data-value="{{::mode.viewMode}}"
-							data-type="changeViewMode"
-							ng-repeat="mode in getAvailableViewModes() track by $index"
-							ng-if="mode.visible">
-					</button-switch>
+					<evt-select
+						ng-if="getAvailableViewModes().length > 0 && getCurrentViewMode() !== undefined"
+						data-id="viewModeSelector"
+						data-type="view-mode"
+						data-init="{{getCurrentViewMode()}}"></evt-select>
 				</div>
+				<button-switch
+					title="TOC.HEADER"
+					data-icon="list-alt"
+					data-type="openToc">
+				</button-switch>
 				<!-- <button-switch
-						title="Witnesses"
-						data-icon="witnesses"
-						data-type="openGlobalDialogWitnesses">
-				</button-switch>
-				<button-switch
-					title="BUTTONS.LIST"
-					ng-if="getProperty('namedEntitiesLists')"
-					data-icon="list"
-					data-type="openGlobalDialogLists">
-				</button-switch>
-				<button-switch
-					class="smaller"
-					title="BUTTONS.INFO"
-					data-icon="info"
-					data-type="openGlobalDialogInfo">
-				</button-switch>
-				<button-switch
 					title="BUTTONS.BOOKMARK"
 					data-icon="bookmark"
 					data-type="bookmark">
@@ -99,24 +83,31 @@
 				<div class="mainMenu" ng-if="getState('mainMenu') === true">
 					<ul>
 						<li>
-							<span ng-click="openGlobalDialogInfo()">
-								<i class="icon icon-evt_info-alt"></i>
-								{{'MAIN_MENU.PROJECT_INFO' | translate}}</span>
-						</li>
-						<li ng-if="getProperty('namedEntitiesLists')">
-							<span ng-click="openGlobalDialogLists()">
-								<i class="icon icon-evt_list"></i>
-								{{'MAIN_MENU.OPEN_LISTS' | translate}}</span>
-						</li>
-						<li>
 							<span ng-click="generateBookmark()">
 								<i class="icon icon-evt_bookmark"></i>
 								{{'MAIN_MENU.GENERATE_BOOKMARK' | translate}}</span>
 						</li>
 						<li ng-if="getProperty('enableXMLdownload')">
-							<span ng-click="downloadXML()">
+							<span ng-click="openDownloadDialog()()">
 								<i class="icon fa fa-download"></i>
-								{{'MAIN_MENU.DOWNLOAD_XML' | translate}}</span>
+								{{'MAIN_MENU.DOWNLOAD' | translate}}</span>
+						</li>
+					</ul>
+					<hr/>
+					<ul>
+						<li>
+							<span>
+								<a href="#" target="_blank">
+										<i class="icon fa fa-question-circle"></i>
+										{{'MAIN_MENU.HELP' | translate}}</a>
+							</span>
+						</li>
+						<li>
+							<span>
+								<a href="https://github.com/evt-project/evt-viewer/issues" target="_blank">
+									<i class="icon fa fa-github"></i>
+									{{'MAIN_MENU.GITHUB_ISSUE' | translate}}</a>
+							</span>
 						</li>
 					</ul>
 					<hr/>
@@ -152,24 +143,23 @@
 			<section
 				class="secondary-container"
 				ng-show="getSecondaryContentOpened() !== ''">
-				<evt-dialog data-type="entitiesList" data-title="DIALOGS.NAMED_ENTITIES"
-					ng-if="getProperty('namedEntitiesLists')">
-					<evt-tabs-container ng-if="getSecondaryContentOpened() === 'entitiesList'"
-						data-type="entitiesList"
+				<evt-dialog data-type="toc" data-title="TOC.HEADER">
+					<evt-tabs-container ng-if="getSecondaryContentOpened() === 'toc'"
+						data-type="toc"
 						data-orientation="vertical">
 					</evt-tabs-container>
 				</evt-dialog>
-				<evt-dialog data-type="globalInfo" data-title="DIALOGS.PROJECT_INFO">
-					<evt-tabs-container ng-if="getSecondaryContentOpened() === 'globalInfo'"
-						data-type="projectInfo"
-						data-orientation="vertical">
-					</evt-tabs-container>
+				<evt-dialog data-type="download" data-title="MAIN_MENU.DOWNLOAD">
+					<evt-download ng-if="getSecondaryContentOpened() === 'download'"></evt-download>
 				</evt-dialog>
 				<evt-dialog data-type="witnessesList" data-title="DIALOGS.WITNESSES">
 					<div compile="getWitnessesListFormatted()"></div>
 				</evt-dialog>
 				<evt-dialog data-type="bookmark" data-title="DIALOGS.BOOKMARK">
 					<div compile="getBookmark()"></div>
+				</evt-dialog>
+				<evt-dialog id="externalSearchDialog" data-type="externalSearch" data-title="{{ 'SEARCH.HEADER' | translate }}">
+					<evt-search-box data-parent-id="externalSearchDialog" ng-if="isFileLoaded()"></evt-search-box>
 				</evt-dialog>
 			</section>
 			<section id="global-container" ng-switch="getCurrentViewMode()" ng-if="!isLoading()">
@@ -409,6 +399,7 @@
 		<!-- bower:js -->
 		<script src="bower_components/jquery/dist/jquery.js"></script>
 		<script src="bower_components/angular/angular.js"></script>
+		<script src="bower_components/json3/lib/json3.min.js"></script>
 		<script src="bower_components/angular-animate/angular-animate.js"></script>
 		<script src="bower_components/angular-cookies/angular-cookies.js"></script>
 		<script src="bower_components/angular-messages/angular-messages.js"></script>
@@ -423,6 +414,11 @@
 		<script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.js"></script>
 		<script src="bower_components/jquery-ui/jquery-ui.js"></script>
 		<script src="bower_components/keyboard/dist/js/jquery.keyboard.js"></script>
+		<script src="bower_components/angular-simple-logger/dist/angular-simple-logger.js"></script>
+		<script src="bower_components/leaflet/dist/leaflet-src.js"></script>
+		<script src="bower_components/ui-leaflet/dist/ui-leaflet.js"></script>
+		<script src="bower_components/pdfmake/build/pdfmake.js"></script>
+		<script src="bower_components/pdfmake/build/vfs_fonts.js"></script>
 		<!-- endbower -->
 		<!-- endbuild -->
 
@@ -460,22 +456,24 @@
 		<script src="/src/dataHandler/versionApparatus.service.js"></script>
 		<script src="/src/dataHandler/bibliographyParser.service.js"></script>
 		<script src="/src/dataHandler/glyphParser.service.js"></script>
+		<script src="/src/dataHandler/depaParser.service.js"></script>			
 
-      <script src="/src/dataHandler/search/objectBuilder.service.js"></script>
-      <script src="/src/dataHandler/search/search.service.js"></script>
-      <script src="/src/dataHandler/search/searchInterface.service.js"></script>
-      <script src="/src/dataHandler/search/searchDocument.service.js"></script>
-      <script src="/src/dataHandler/search/searchParser.service.js"></script>
-      <script src="/src/dataHandler/search/searchParagraphLineParser.service.js"></script>
-      <script src="/src/dataHandler/search/searchLbParser.service.js"></script>
-      <script src="/src/dataHandler/search/diplomaticEditionHandler.service.js"></script>
-      <script src="/src/dataHandler/search/interpretativeEditionHandler.service.js"></script>
-      <script src="/src/dataHandler/search/diplomaticParagraphLineHandler.service.js"></script>
-      <script src="/src/dataHandler/search/diplomaticInterpretativeParagraphLineHandler.service.js"></script>
-      <script src="/src/dataHandler/search/diplomaticLbHandler.service.js"></script>
-      <script src="/src/dataHandler/search/diplomaticInterpretativeLbHandler.service.js"></script>
-      <script src="/src/dataHandler/search/virtualKeyboard.service.js"></script>
-      <script src="/dist/search.service.js"></script>
+		<script src="/src/dataHandler/search/objectBuilder.service.js"></script>
+		<script src="/src/dataHandler/search/search.service.js"></script>
+		<script src="/src/dataHandler/search/searchInterface.service.js"></script>
+		<script src="/src/dataHandler/search/searchDocument.service.js"></script>
+		<script src="/src/dataHandler/search/searchParser.service.js"></script>
+		<script src="/src/dataHandler/search/searchParagraphLineParser.service.js"></script>
+		<script src="/src/dataHandler/search/searchLbParser.service.js"></script>
+		<script src="/src/dataHandler/search/diplomaticEditionHandler.service.js"></script>
+		<script src="/src/dataHandler/search/interpretativeEditionHandler.service.js"></script>
+		<script src="/src/dataHandler/search/diplomaticParagraphLineHandler.service.js"></script>
+		<script src="/src/dataHandler/search/diplomaticInterpretativeParagraphLineHandler.service.js"></script>
+		<script src="/src/dataHandler/search/diplomaticLbHandler.service.js"></script>
+		<script src="/src/dataHandler/search/diplomaticInterpretativeLbHandler.service.js"></script>
+		<script src="/src/dataHandler/search/virtualKeyboard.service.js"></script>
+		<script src="/src/dataHandler/search/builtIndex.constant.js"></script>
+		<script src="/dist/search.service.js"></script>
 
 		<script src="/src/bibliography/bibliography.js"></script>
 		<script src="/src/bibliography/scrollif.directive.js"></script>
@@ -575,6 +573,11 @@
 		<script src="/src/tabsContainer/tabsContainer.controller.js"></script>
 		<script src="/src/tabsContainer/tabsContainer.directive.js"></script>
 
+		<script src="/src/toc/toc.js"></script>
+		<script src="/src/toc/toc.provider.js"></script>
+		<script src="/src/toc/toc.controller.js"></script>
+		<script src="/src/toc/toc.directive.js"></script>
+
 		<script src="/src/quote/quote.js"></script>
 		<script src="/src/quote/quote.configuration.js"></script>
 		<script src="/src/quote/quote.provider.js"></script>
@@ -621,7 +624,7 @@
 		<script src="/src/versionApparatusEntry/versionApparatusEntry.controller.js"></script>
 		<script src="/src/versionApparatusEntry/versionApparatusEntry.directive.js"></script>
 		<script src="/src/versionApparatusEntry/versionRef.provider.js"></script>
-		<script src="/src/versionApparatusEntry/versionRef.directive.js"></script>
+		<script src="/src/versionApparatusEntry/versionRef.directive.js"></script>>
 
       <script src="/src/search/search.js"></script>
       <script src="/src/search/searchBox.directive.js"></script>
@@ -633,6 +636,11 @@
       <script src="/src/search/searchResults.provider.js"></script>
       <script src="/src/search/virtualKeyboard.directive.js"></script>
       <script src="/src/search/virtualKeyboard.provider.js"></script>
+
+			<script src="/src/download/download.js"></script>
+			<script src="/src/download/download.provider.js"></script>
+			<script src="/src/download/download.controller.js"></script>
+			<script src="/src/download/download.directive.js"></script>
 		<!-- endinjector -->
 		<!-- endbuild -->
 	</body>

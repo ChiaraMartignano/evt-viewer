@@ -34,35 +34,40 @@
             data-type="alignReadings"
             ng-click="vm.alignReadings()"></button-switch>
     </div>
-    <span class="apparatus_exponent"
+    <strong class="apparatus_exponent"
             ng-if="::vm.showExponent"
-            compile="vm.exponent"></span>
+            compile="vm.exponent"></strong>
 
       <span
         class="app_lemma"
         ng-if="::vm.content.lemma.content !== ''"
         compile="::vm.content.lemma.content"></span>
     <div class="critical-apparatus-entry_main-content_list">
+      <span
+        class="app_reading"
+        ng-if="::vm.witnessesGroups.length === 0"
+        ng-repeat="reading in ::vm.content.significantReadings track by $index"
+        compile="reading.content">
+        </span>
+      <ul
+        class="app_reading_list"
+        ng-if="::vm.witnessesGroups.length > 0">
+        <li ng-repeat="group in ::vm.witnessesGroups"
+          ng-if="::group.significantText !== undefined">
             <span
-              class="app_reading"
-              ng-if="::vm.witnessesGroups.length === 0"
-              ng-repeat="reading in ::vm.content.significantReadings track by $index"
-              compile="reading.content">
-              </span>
-              <ul
-                class="app_reading_list"
-                ng-if="::vm.witnessesGroups.length > 0">
-                <li ng-repeat="group in ::vm.witnessesGroups"
-                  ng-if="::group.significantText !== undefined">
-                    <span
-                      class="witGrp_name"
-                      ng_if="::group.groupName !== '' && group.significantText !== undefined">{{group.groupName}}:</span>
-                    <span
-                      class="witGrp_content"
-                      compile="group.significantText"></span>
-                </li>
-             </ul>
-        </div>
+              class="witGrp_name"
+              ng_if="::group.groupName !== '' && group.significantText !== undefined">{{group.groupName}}:</span>
+            <span
+              class="witGrp_content"
+              compile="group.significantText"></span>
+        </li>
+      </ul>
+    </div>
+    <div
+      class="sub_app"
+      ng-repeat="subApp in vm.content.subApps track by $index"
+      ng-class="{ 'firstSubApp': $index === 0 }"
+      compile="subApp"></div>
   </div>
   <div class="critical-apparatus-entry_other-content"
        ng-if="::vm.tabs._indexes.length > 0">
@@ -78,7 +83,8 @@
       </div>
       <div
         class="critical-apparatus-entry_other-content_panels"
-        ng-class="{'closed': vm._subContentOpened === ''}">
+        ng-class="{'closed': vm._subContentOpened === '',
+                    'fullHeight': vm.currentViewMode === 'readingTxt'}">
           <div class="critical-apparatus-entry_other-content_panel"
                 ng-repeat="tab in ::vm.tabs._indexes track by $index"
                 ng-class="{'active' : vm._subContentOpened == tab}"

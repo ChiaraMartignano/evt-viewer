@@ -20,7 +20,7 @@ angular.module('evtviewer.reference')
         defaults = _defaults;
     };
 
-    this.$get = function($log) {
+    this.$get = function($log, parsedData) {
         var reference  = {},
             collection = {},
             list       = [],
@@ -72,14 +72,25 @@ angular.module('evtviewer.reference')
                 return;
             }
 
+            var popupText = '',
+                target = currentTarget.replace('#', ''),
+                hasPopup = (currentType === 'bibl' || currentType === 'biblio')
+                    && parsedData.getBibliographicRefsCollection()._indexes.indexOf(target) >= 0;
+            if (hasPopup) {
+                popupText = parsedData.getBibliographicRefsCollection()[target].plainText;
+            }
+
             scopeHelper = {
                 // expansion
                 uid           : currentId,
                 defaults      : angular.copy(defaults),
+                popupText     : popupText,
+                hasPopup      : hasPopup,
 
                 // model
                 type         : currentType,
-                target       : currentTarget
+                target       : currentTarget,
+                showPopup    : false
             };
 
             collection[currentId] = angular.extend(scope.vm, scopeHelper);
@@ -105,6 +116,9 @@ angular.module('evtviewer.reference')
          * @param {string} tempId id of <code>&lt;ref&gt;</code> to destroy
          */
         reference.destroy = function(tempId) {
+            if (collection[tempId].tooltip) {
+                collection[tempId].tooltip.dispose();
+            }
             delete collection[tempId];
         };
         /**
@@ -146,6 +160,12 @@ angular.module('evtviewer.reference')
                 if (currentRef.uid === uid) {
                     return currentRef;
                 }
+            });  
+        };
+        
+        reference.closeAllPopups = function() {
+            angular.forEach(collection, function(currentRef) {
+                currentRef.showPopup = false;
             });  
         };
 
