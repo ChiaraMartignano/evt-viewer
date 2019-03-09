@@ -618,7 +618,23 @@ angular.module('evtviewer.box')
 						scope.vm.isLoading = false;
 					};
 					break;
-            case 'text':
+						case 'text':
+						if (config.showDocumentSelector
+							&& parsedData.getDocuments()._indexes
+							&& parsedData.getDocuments()._indexes.length > 0) {
+							topMenuList.selectors.push({
+								id: 'document_' + currentId,
+								type: 'document',
+								initValue: evtInterface.getState('currentDocument')
+							});
+						}
+						if (config.showEditionLevelSelector) {
+							topMenuList.selectors.push({
+								id: 'edition_' + currentId,
+								type: 'edition',
+								initValue: evtInterface.getState('currentEdition')
+							});
+						}
 					if (!parsedData.isCriticalEditionAvailable() || evtInterface.getState('currentEdition') !== 'critical') {
 						topMenuList.selectors.push({
 							id: 'page_' + currentId,

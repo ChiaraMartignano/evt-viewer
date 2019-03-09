@@ -95,7 +95,7 @@ angular.module('evtviewer.core')
 
 	defaultEdition: 'diplomatic',
 
-	showEditionLevelSelector: false,
+	showEditionLevelSelector: true,
 	availableEditionLevel: [{
 		value: 'critical',
 		label: 'Critical',
@@ -110,7 +110,7 @@ angular.module('evtviewer.core')
 		value: 'interpretative',
 		label: 'Interpretative',
 		title: 'Interpretative edition',
-		visible: false
+		visible: true
 	}],
 	
 	mainDocId: 'v_cgm696',

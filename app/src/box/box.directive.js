@@ -535,6 +535,28 @@ angular.module('evtviewer.box')
                 });
             }
 
+            var textBoxes = ['text', 'witness', 'version', 'source'];
+            if (textBoxes.indexOf(currentBox.type) >= 0) {
+                scope.$watch(function() {
+                    return evtInterface.getState('currentPage');
+                }, function(newItem, oldItem) {
+                    var newPage = parsedData.getPage(newItem),
+                        oldPage = parsedData.getPage(oldItem);
+                    if (newItem !== oldItem || (newPage && oldPage && newPage.docs[0] !== newPage.docs[0])) {
+                        scope.vm.isLoading = true;
+                        currentBox.updateContent();
+                    }
+                }, true);
+                scope.$watch(function() {
+                    return evtInterface.getState('currentEdition');
+                }, function(newItem, oldItem) {
+                    if (newItem !== oldItem) {
+                        scope.vm.isLoading = true;
+                        currentBox.updateContent();
+                    }
+                }, true);
+            }
+
             // Garbage collection
             scope.$on('$destroy', function() {
                 if (currentBox){

@@ -33,13 +33,13 @@
                                 "label"    : "TEXT_TEXT",
                                 "icon"     : "mode-txtTxt",
                                 "viewMode" : "txtTxt",
-                                "visible"  : false
+                                "visible"  : true
                             },
                             {
                                 "label"    : "COLLATION",
                                 "icon"     : "mode-collation",
                                 "viewMode" : "collation",
-                                "visible"  : true
+                                "visible"  : false
                             },
                             {
                                 "label"    : "SOURCE_TEXT",

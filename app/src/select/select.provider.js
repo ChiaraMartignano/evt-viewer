@@ -214,15 +214,22 @@ angular.module('evtviewer.select')
 					};
 					formatOptionList = function(optionList) {
 						var formattedList = [];
-						for (var i = 0; i < optionList.length; i++) {
-							formattedList.push(optionList[optionList[i]]);
+						for (var i in optionList) {
+							formattedList.push(optionList[i]);
 						}
 						return formattedList;
 					};
 					formatOption = function(option) {
 						return option;
 					};
-					optionList = formatOptionList(parsedData.getPages());
+					var pages = config.showDocumentSelector && parsedData.getDocuments()._indexes.length > 0 ? undefined : parsedData.getPages(),
+							currentDoc = evtInterface.getState('currentDoc') || config.mainDocId;
+					if (!pages && currentDoc) {
+						pages = parsedData.getDocument(currentDoc).pages.map(function(page) {
+							return parsedData.getPage(page);
+						});
+					}
+					optionList = formatOptionList(pages);
 					break;
 				case 'document':
 					callback = function(oldOption, newOption) {
