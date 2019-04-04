@@ -789,7 +789,7 @@ angular.module('evtviewer.dataHandler')
 		var divs = [],
 				doc = docObj && docObj.content ? docObj.content : undefined,
 				dom = angular.element(doc);				
-		docObj.divs.forEach((divId) => {
+		docObj.divs.forEach(function(divId) {
 			var divObj = parsedData.getDiv(divId),
 					divElem;
 			angular.forEach(dom.find('div'), function(div) {
