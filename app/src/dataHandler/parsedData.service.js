@@ -13,7 +13,7 @@
 **/
 angular.module('evtviewer.dataHandler')
 
-.service('parsedData', function($log, config, Utils) {
+.service('parsedData', function($log, config, Utils, evtNEOccurrencesSearchIndex) {
 	var parsedData = {};
 	var _console = $log.getInstance('dataHandler');
 
@@ -490,6 +490,7 @@ angular.module('evtviewer.dataHandler')
 	};
 
 	var NEOccurrences = [];
+	var NEOccurrencesIndex = {};
 
 	parsedData.addNEOccurrence = function(occurrence) {
 		NEOccurrences.push(occurrence);
@@ -497,6 +498,14 @@ angular.module('evtviewer.dataHandler')
 
 	parsedData.getNEOccurrences = function() {
 		return NEOccurrences;
+	}
+
+	parsedData.buildNEOccurrencesIndex = function() {
+		NEOccurrencesIndex = evtNEOccurrencesSearchIndex.createIndex(NEOccurrences);
+	}
+	
+	parsedData.getNEOccurrencesIndex = function() {
+		return NEOccurrencesIndex;
 	}
 
 	parsedData.getMainFront = function() {

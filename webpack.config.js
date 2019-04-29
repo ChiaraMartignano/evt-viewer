@@ -5,6 +5,7 @@ module.exports = {
    entry: [
       './app/src/dataHandler/search/searchIndex.service.js',
       './app/src/dataHandler/search/searchQuery.service.js',
+      './app/src/dataHandler/NEOccurrencesSearchIndex.service.js',
       './app/src/dataHandler/search/searchResults.service.js'
    ],
    output: {

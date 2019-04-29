@@ -38,7 +38,6 @@ angular.module('evtviewer.dataHandler')
 	projectInfoDefs.blockLabels += '<edition>, <correction>, <hyphenation>, <interpretation>, <normalization>, <punctuation>, <interpGrp>';
 	projectInfoDefs.blockLabels += '<quotation>, <segmentation>, <stdVals>, <colophon>, <handDesc>, <decoDesc>, <supportDesc>, <origin>';
 	parser.parserProperties = {};
-	parser.entitiesOccurrences = [];
 	// ///////// //
 	// UTILITIES //
 	// ///////// //
@@ -869,6 +868,7 @@ angular.module('evtviewer.dataHandler')
 		console.log('## Documents ##', parsedData.getDocuments());
 		console.log('## DIVS ##', parsedData.getDivs());
 		console.log('## Entities Occurrences ##', parsedData.getNEOccurrences());
+		console.log('## Entities Occurrences ##', parsedData.buildNEOccurrencesIndex());
 		return parsedData.getDocuments();
 	};
 
