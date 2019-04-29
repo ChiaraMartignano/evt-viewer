@@ -38,6 +38,7 @@ angular.module('evtviewer.dataHandler')
 	projectInfoDefs.blockLabels += '<edition>, <correction>, <hyphenation>, <interpretation>, <normalization>, <punctuation>, <interpGrp>';
 	projectInfoDefs.blockLabels += '<quotation>, <segmentation>, <stdVals>, <colophon>, <handDesc>, <decoDesc>, <supportDesc>, <origin>';
 	parser.parserProperties = {};
+	parser.entitiesOccurrences = [];
 	// ///////// //
 	// UTILITIES //
 	// ///////// //
@@ -866,7 +867,8 @@ angular.module('evtviewer.dataHandler')
 		}
 		console.log('## PAGES ##', parsedData.getPages());
 		console.log('## Documents ##', parsedData.getDocuments());
-		console.log('## DIVS ##', parsedData.getDivs())
+		console.log('## DIVS ##', parsedData.getDivs());
+		console.log('## Entities Occurrences ##', parsedData.getNEOccurrences());
 		return parsedData.getDocuments();
 	};
 
@@ -939,6 +941,7 @@ angular.module('evtviewer.dataHandler')
 		}
 		newDiv.value = newDiv['xml-id'] || 'div_' + (parsedData.getDivs().length + 1);
 		parser.createTitle(newDiv, 'Div');
+		parser.parseEntitiesOccurrences(docId, newDiv.value, element);
 		var elem = angular.element(element);
 		angular.forEach(elem.children('div'), function(child) {
 			newDiv.subDivs.push(parser.parseDiv(child, docId, section).value);
@@ -1002,6 +1005,30 @@ angular.module('evtviewer.dataHandler')
 				parsedContent: parsedContent && parsedContent.outerHTML ? parsedContent.outerHTML.trim() : '',
 				originalContent: frontElem.outerHTML
 			};
+		}
+	}
+
+	parser.parseEntitiesOccurrences = function(docId, divId, element) {
+		var elemsToSearch = ['placeName', 'persName', 'orgName', 'term'];
+		var types = ['place', 'person', 'org', 'generic'];
+		var i = 0;
+		for (var i = 0; i < elemsToSearch.length; i++) {
+			var entities = element.querySelectorAll(elemsToSearch[i]);
+			for (var j = 0; j < entities.length; j++) {
+				var ref = entities[j].getAttribute('ref') || '';
+				if (ref) {
+					var newEntityOccurrence = {
+						divId: divId,
+						docId: docId,
+						ref: ref.replace('#', ''),
+						lang: entities[j].getAttribute('xml:lang') || '',
+						tagName: elemsToSearch[i],
+						text: entities[j].textContent,
+						type: types[i],
+					}
+					parsedData.addNEOccurrence(newEntityOccurrence);
+				}
+			}
 		}
 	}
 

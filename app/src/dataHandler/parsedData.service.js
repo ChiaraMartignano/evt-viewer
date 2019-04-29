@@ -489,6 +489,16 @@ angular.module('evtviewer.dataHandler')
 		_indexes: []
 	};
 
+	var NEOccurrences = [];
+
+	parsedData.addNEOccurrence = function(occurrence) {
+		NEOccurrences.push(occurrence);
+	};
+
+	parsedData.getNEOccurrences = function() {
+		return NEOccurrences;
+	}
+
 	parsedData.getMainFront = function() {
 		return mainFront;
 	}
