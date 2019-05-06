@@ -817,6 +817,10 @@ angular.module('evtviewer.interface')
             var pos = findWitnessPosition(newWit, state.currentWits);
             state.currentWits.splice(pos, 0, newWit);
             mainInterface.removeAvailableWitness(newWit);
+            $timeout(function() {
+                var singleBoxWidth = window.getComputedStyle(document.getElementsByClassName('box')[1]).width.replace('px', '');
+				document.getElementById('compareWits_box').scrollLeft = singleBoxWidth * pos;
+			});
         };
 
         var findWitnessPosition = function(wit, list) {

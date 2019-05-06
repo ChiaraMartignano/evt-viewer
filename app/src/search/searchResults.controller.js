@@ -139,7 +139,7 @@ angular.module('evtviewer.search')
                         if (witIndex >= 0) {
                               evtInterface.removeWitness(wit);
                         }
-                        evtInterface.addWitnessAtIndex(wit, 0);
+                        evtInterface.addWitness(wit);
                   }
                   if (evtInterface.getState('currentViewMode') !== 'collation') {
                         evtInterface.updateState('currentViewMode', 'collation');

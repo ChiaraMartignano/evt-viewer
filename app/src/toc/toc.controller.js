@@ -30,7 +30,7 @@ angular.module('evtviewer.toc')
             var currentWits = evtInterface.getState('currentWits');
             var index = currentWits.indexOf(wit);
             if (index === -1) {
-                evtInterface.addWitnessAtIndex(wit, 0);
+                evtInterface.addWitness(wit);
             } else if (index > 0) {
                 evtInterface.switchWitnesses(currentWits[0], wit);
             }

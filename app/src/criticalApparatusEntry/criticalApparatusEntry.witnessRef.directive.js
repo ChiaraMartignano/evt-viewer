@@ -86,7 +86,7 @@ angular.module('evtviewer.criticalApparatusEntry')
                         evtInterface.removeWitness(newWit);
 					}
 					if (scopeWitnessIndex !== undefined) {
-						evtInterface.addWitnessAtIndex(newWit, scopeWitnessIndex + 1);
+						evtInterface.addWitness(newWit);
 					}
 					if (evtInterface.getCurrentView !== 'collation') {
 						evtInterface.updateState('currentViewMode', 'collation');
