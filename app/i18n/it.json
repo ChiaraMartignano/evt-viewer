@@ -166,6 +166,9 @@
 			"SMALL": "occorrenze",
 			"TITLE": "{{totalLength}} occorrenze trovate in {{formLength}} forme diverse"
 		},
+		"SEARCH": {
+			"LABEL": "Ricerca realia"
+		},
 		"XML": "XML",
 		"MAP": "Mappa"
 	},

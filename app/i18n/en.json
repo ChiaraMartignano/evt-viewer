@@ -166,6 +166,9 @@
 			"SMALL": "occurrences",
 			"TITLE": "{{totalLength}} occurrences found in {{formLength}} different forms"
 		},
+		"SEARCH": {
+			"LABEL": "Search entities"
+		},
 		"XML": "XML",
 		"MAP": "Map"
 	},

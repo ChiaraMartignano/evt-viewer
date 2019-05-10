@@ -279,6 +279,14 @@ angular.module('evtviewer.tabsContainer')
 							scrollDisabled: true
 						};
 					}
+					tabs.entitiesLists.subTabs['namedEntitiesSearch'] = {
+						label: 'NAMED_ENTITIES.SEARCH.LABEL',
+						icon: 'fa-search',
+						name: 'namedEntitiesSearch',
+						content: '<evt-named-entities-search></evt-named-entities-search>',
+						scrollDisabled: false
+					};
+					tabs.entitiesLists.subTabs._indexes.push('namedEntitiesSearch');
 					tabs._indexes.push('entitiesLists');
 
 					// BIBLIOGRAPHY //

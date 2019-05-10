@@ -26,7 +26,7 @@
  *
  * @restrict E
  *
- * @author CDP
+ * @author CM
 **/
 angular.module('evtviewer.namedEntitiesSearch')
 
