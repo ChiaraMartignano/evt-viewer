@@ -882,14 +882,10 @@ angular.module('evtviewer.dataHandler')
 			pages: [], // Pages will be added later
 			divs: []
 		};
-		var lang = '';
 		for (var j = 0; j < element.attributes.length; j++) {
 			var attrib = element.attributes[j];
 			if (attrib.specified) {
 				newDoc[attrib.name.replace(':', '-')] = attrib.value;
-				if (attrib.name === 'xml:lang') {
-					lang = attrib.value;
-				}
 			}
 		}
 		parser.createTitle(newDoc, 'Doc');
@@ -900,11 +896,11 @@ angular.module('evtviewer.dataHandler')
 			var front = element.querySelector('front'),
 					body = element.querySelector('body');
 			if (front) {
-				parser.parseDivs(front, newDoc.value, 'front', lang);
+				parser.parseDivs(front, newDoc.value, 'front');
 			}
-			parser.parseDivs(body, newDoc.value, 'body', lang);		
+			parser.parseDivs(body, newDoc.value, 'body');		
 		} else {
-			parser.parseDivs(element, newDoc.value, 'body', lang);
+			parser.parseDivs(element, newDoc.value, 'body');
 		}
 		if (config.defaultEdition !== 'critical' || !parsedData.isCriticalEditionAvailable()) {
 			// Split pages works only on diplomatic/interpretative edition
@@ -920,10 +916,11 @@ angular.module('evtviewer.dataHandler')
 		}
 	}
 
-	parser.parseDivs = function(doc, docId, section, lang) {
+	parser.parseDivs = function(doc, docId, section) {
+		var lang = doc.getAttribute('xml:lang') ? doc.getAttribute('xml:lang') : '';
 		var currentDocument = angular.element(doc);
 		angular.forEach(currentDocument.children('div'), function(element) {
-			parser.parseDiv(element, docId, section);
+			parser.parseDiv(element, docId, section, lang);
 		});
 	};
 
@@ -948,7 +945,7 @@ angular.module('evtviewer.dataHandler')
 		parser.parseEntitiesOccurrences(docId, newDiv.value, element, lang);
 		var elem = angular.element(element);
 		angular.forEach(elem.children('div'), function(child) {
-			newDiv.subDivs.push(parser.parseDiv(child, docId, section).value);
+			newDiv.subDivs.push(parser.parseDiv(child, docId, section, lang).value);
 		});
 		parsedData.addDiv(newDiv, docId);
 		return newDiv;
@@ -1020,12 +1017,13 @@ angular.module('evtviewer.dataHandler')
 			var entities = element.querySelectorAll(elemsToSearch[i]);
 			for (var j = 0; j < entities.length; j++) {
 				var ref = entities[j].getAttribute('ref') || '';
+				var l = entities[j].hasAttribute('xml:lang') && entities[j].getAttribute('xml:lang') !== '' ? entities[j].getAttribute('xml:lang') : lang;
 				if (ref) {
 					var newEntityOccurrence = {
 						divId: divId,
 						docId: docId,
 						ref: ref.replace('#', ''),
-						lang: entities[j].getAttribute('xml:lang') || lang,
+						lang: l,
 						tagName: elemsToSearch[i],
 						text: entities[j].textContent,
 						type: types[i],
