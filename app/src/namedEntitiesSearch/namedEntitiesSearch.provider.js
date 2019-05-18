@@ -23,7 +23,7 @@ angular.module('evtviewer.namedEntitiesSearch')
 		defaults = _defaults;
 	};
 
-	this.$get = function($log, parsedData, evtInterface) {
+	this.$get = function($log) {
 		var namedEntitiesSearch = {},
 			collection = {},
 			list = [],
@@ -35,13 +35,15 @@ angular.module('evtviewer.namedEntitiesSearch')
 			var currentId 	= scope.id || idx++,
 				currentType = scope.type || '';
 
-			var scopeHelper = {};
 
 			if (typeof(collection[currentId]) !== 'undefined') {
 				return;
 			}
 
-			scopeHelper = {};
+			var scopeHelper = {
+				inputValue: '',
+				results: []
+			};
 
 			collection[currentId] = angular.extend(scope.vm, scopeHelper);
 			list.push({

@@ -12,10 +12,14 @@
 **/
 angular.module('evtviewer.namedEntitiesSearch')
 
-.controller('namedEntitiesSearchCtrl', function($log, $scope, parsedData, evtInterface) {
+.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults) {
+
     var _console = $log.getInstance('namedEntitiesSearch');
 
-    
-
-    _console.log('namedEntitiesSearchCtrl running');
+    $scope.search = function() {
+        console.log($scope.vm.inputValue);
+        var results = evtNEOccurrencesSearchResults.getSearchResults($scope.vm.inputValue, false);
+        console.log(results);
+        $scope.vm.results = results;
+    }
 });

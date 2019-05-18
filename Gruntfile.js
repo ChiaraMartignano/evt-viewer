@@ -116,6 +116,7 @@ module.exports = function (grunt) {
       webpack: {
         files: ['<%= yeoman.app %>/src/dataHandler/search/searchIndex.service.js',
                '<%= yeoman.app %>/src/dataHandler/NEOccurrencesSearchIndex.service.js',
+               '<%= yeoman.app %>/src/dataHandler/NEOccurrencesSearchResults.service.js',
                '<%= yeoman.app %>/src/dataHandler/search/searchQuery.service.js',
                '<%= yeoman.app %>/src/dataHandler/search/searchResults.service.js'],
          tasks: ['webpack']

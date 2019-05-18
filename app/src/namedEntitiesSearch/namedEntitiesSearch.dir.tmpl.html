@@ -1,3 +1,8 @@
 <div>
-  <p>PROVA</p>
+  <p>
+    <input type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
+    <button
+      ng-click="search()">Cerca forme</button>
+  </p>
+  <p>{{vm.results}}</p>
 </div>
