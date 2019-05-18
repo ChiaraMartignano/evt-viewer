@@ -33,8 +33,7 @@ angular.module('evtviewer.namedEntitiesSearch')
 
 		namedEntitiesSearch.build = function(scope) {
 			var currentId 	= scope.id || idx++,
-				currentType = scope.type || '',
-				orientation = scope.orientation || 'vertical';
+				currentType = scope.type || '';
 
 			var scopeHelper = {};
 
@@ -51,6 +50,10 @@ angular.module('evtviewer.namedEntitiesSearch')
 			});
 
 			return collection[currentId];
+		};
+
+		namedEntitiesSearch.destroy = function(tempId) {
+			delete collection[tempId];
 		};
 
 		return namedEntitiesSearch;

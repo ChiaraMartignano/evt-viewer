@@ -34,14 +34,15 @@ angular.module('evtviewer.namedEntitiesSearch')
 
     return {
         restrict: 'E',
-        scope: {        },
+        scope: {},
+        transclude: true,
         templateUrl: 'src/namedEntitiesSearch/namedEntitiesSearch.dir.tmpl.html',
         controllerAs: 'vm',
         controller: 'namedEntitiesSearchCtrl',
-        link: function(scope, element, attrs) {
+        link: function(scope) {
             // Add attributes in vm
             scope.vm = {};
-      		// Initialize tabs container
+      		// Initialize search
             var currentSearch = evtNamedEntitiesSearch.build(scope);
 
             // Garbage collection
