@@ -16,8 +16,11 @@ angular.module('evtviewer.dataHandler')
       }
       
       function getResultsMetadata(inputValue, isCaseSensitive) {
-         var results = makeQuery(inputValue.toLowerCase());
-         
+         var res = makeQuery(inputValue.toLowerCase()),
+             results = [];
+         angular.forEach(res, function(result) {
+            results.push(getResultData(result));
+         });
          return results;
       }
       
@@ -30,6 +33,38 @@ angular.module('evtviewer.dataHandler')
          });
          return searchResults;
       }
+      
+      function makeRefQuery(inputValue) {
+         var index = getIndex();
+         var searchResults = index.query(function(q) {
+            q.term(inputValue, {
+               usePipeline: false
+            });
+         });
+         return searchResults;
+      }
+            
+      function getResultData(result) {
+         var resultData = {};
+         var data = Object.values(result.matchData.metadata)[0].text;
+         resultData._occurrences = data.text.length;
+         resultData._langs = {};
+         for (var i = 0; i < resultData._occurrences; i++) {
+            resultData[i] = {};
+            var properties = Object.keys(data);
+            for (var j = 0; j < properties.length; j++) {
+               resultData[i][properties[j]] = data[properties[j]][i];
+               if (properties[j] === 'lang') {
+                  var lang = data[properties[j]][i];
+                  if (!resultData._langs[lang]) {
+                     resultData._langs[lang] = [];
+                  }
+                  resultData._langs[lang].push(i);
+               }
+            }
+         }
+         return resultData;
+      };
       
       function getCaseSensitiveResults(inputValue, tokenList) {
          var results = [],
@@ -111,34 +146,4 @@ angular.module('evtviewer.dataHandler')
          }
          return results;
       }
-      
-      NEOccurrencesSearchResults.prototype.getOccurrences = function (searchResults, currentEdition) {
-            var currentResults = [],
-            edition = {
-               'diplomatic': function () {
-               var diplomaticResults = searchResults.diplomatic;
-               angular.forEach(diplomaticResults, function (result) {
-                  currentResults.push(result);
-               });
-            },
-               'interpretative': function () {
-               var interpretativeResults = searchResults.interpretative;
-               angular.forEach(interpretativeResults, function (result) {
-                  currentResults.push(result);
-               });
-            },
-               'critical': function () {
-               var results = searchResults.interpretative || searchResults.diplomatic;
-               angular.forEach(results, function (result) {
-                  currentResults.push(result);
-               });
-            }
-            };
-         
-         if(Object.keys(searchResults).length !== 0){
-            edition[currentEdition]();
-         }
-         
-         return currentResults;
-      };
    }]);
