@@ -17,9 +17,7 @@ angular.module('evtviewer.namedEntitiesSearch')
     var _console = $log.getInstance('namedEntitiesSearch');
 
     $scope.search = function() {
-        console.log($scope.vm.inputValue);
-        var results = evtNEOccurrencesSearchResults.getSearchResults($scope.vm.inputValue, false);
-        console.log(results);
+        var results = evtNEOccurrencesSearchResults.getSearchResults($scope.vm.inputValue);
         $scope.vm.results = results;
     }
 });

@@ -15,8 +15,9 @@ angular.module('evtviewer.dataHandler')
    
             this.tokenizer.separator = /[\s,.;:/?!()\'\"]+/;
             
-            this.ref('ref');
             this.field('text');
+            this.field('ref');
+            this.ref('ref');
             
             var keys = Object.keys(parsedElementsForIndexing[0]);
             console.log(keys)

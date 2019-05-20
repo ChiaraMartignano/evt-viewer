@@ -15,11 +15,14 @@ angular.module('evtviewer.dataHandler')
          return evtNEOccurrencesSearchIndex.getIndex();
       }
       
-      function getResultsMetadata(inputValue, isCaseSensitive) {
+      function getResultsMetadata(inputValue) {
          var res = makeQuery(inputValue.toLowerCase()),
              results = [];
          angular.forEach(res, function(result) {
-            results.push(getResultData(result));
+            var partialResults = result.matchData.metadata;
+            for (var i in partialResults) {
+               results.push(getResultData(partialResults[i]));
+            }
          });
          return results;
       }
@@ -46,9 +49,10 @@ angular.module('evtviewer.dataHandler')
             
       function getResultData(result) {
          var resultData = {};
-         var data = Object.values(result.matchData.metadata)[0].text;
+         var data = result.text;
          resultData._occurrences = data.text.length;
          resultData._langs = {};
+         resultData._mainForm = data.text[0];
          for (var i = 0; i < resultData._occurrences; i++) {
             resultData[i] = {};
             var properties = Object.keys(data);
