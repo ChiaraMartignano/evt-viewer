@@ -17,13 +17,18 @@ angular.module('evtviewer.dataHandler')
       
       function getResultsMetadata(inputValue) {
          var res = makeQuery(inputValue.toLowerCase()),
-             results = [];
+             results = [],
+             refs = [];
          angular.forEach(res, function(result) {
             var partialResults = result.matchData.metadata;
             for (var i in partialResults) {
                results.push(getResultData(partialResults[i]));
             }
+            if (refs.indexOf(result.ref) < 0) {
+               refs.push(result.ref);
+            }
          });
+         console.log(results, refs)
          return results;
       }
       
@@ -31,6 +36,7 @@ angular.module('evtviewer.dataHandler')
          var index = getIndex();
          var searchResults = index.query(function(q) {
             q.term(inputValue, {
+               fields: ["text"],
                usePipeline: false
             });
          });
@@ -41,6 +47,7 @@ angular.module('evtviewer.dataHandler')
          var index = getIndex();
          var searchResults = index.query(function(q) {
             q.term(inputValue, {
+               fields: ["ref"],
                usePipeline: false
             });
          });
@@ -49,7 +56,7 @@ angular.module('evtviewer.dataHandler')
             
       function getResultData(result) {
          var resultData = {};
-         var data = result.text;
+         var data = result.text || result.ref;
          resultData._occurrences = data.text.length;
          resultData._langs = {};
          resultData._mainForm = data.text[0];

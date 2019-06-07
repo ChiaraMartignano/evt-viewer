@@ -48,7 +48,7 @@ angular.module('evtviewer.namedEntitiesSearch')
             // Garbage collection
             scope.$on('$destroy', function() {
                 if (currentSearch){
-                    currentSearch.destroy();
+                    scope.destroy();
                 }
             });
         }

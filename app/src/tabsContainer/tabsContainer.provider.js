@@ -286,7 +286,9 @@ angular.module('evtviewer.tabsContainer')
 						content: '<evt-named-entities-search></evt-named-entities-search>',
 						scrollDisabled: false
 					};
-					tabs.entitiesLists.subTabs._indexes.push('namedEntitiesSearch');
+					if (tabs.entitiesLists.subTabs._indexes.indexOf('namedEntitiesSearch') < 0) {
+						tabs.entitiesLists.subTabs._indexes.push('namedEntitiesSearch');
+					}
 					tabs._indexes.push('entitiesLists');
 
 					// BIBLIOGRAPHY //

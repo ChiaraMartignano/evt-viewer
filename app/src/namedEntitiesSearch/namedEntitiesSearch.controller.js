@@ -12,7 +12,7 @@
 **/
 angular.module('evtviewer.namedEntitiesSearch')
 
-.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults) {
+.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults, evtNamedEntitiesSearch) {
 
     var _console = $log.getInstance('namedEntitiesSearch');
 
@@ -20,4 +20,8 @@ angular.module('evtviewer.namedEntitiesSearch')
         var results = evtNEOccurrencesSearchResults.getSearchResults($scope.vm.inputValue);
         $scope.vm.results = results;
     }
+
+    $scope.destroy = function() {
+		evtNamedEntitiesSearch.destroy($scope.vm.id);
+	};
 });
