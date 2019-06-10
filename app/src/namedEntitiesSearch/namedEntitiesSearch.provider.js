@@ -43,6 +43,7 @@ angular.module('evtviewer.namedEntitiesSearch')
 			var scopeHelper = {
 				id: currentId,
 				inputValue: '',
+				field: 'text',
 				results: []
 			};
 

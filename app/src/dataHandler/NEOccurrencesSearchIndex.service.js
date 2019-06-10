@@ -17,6 +17,7 @@ angular.module('evtviewer.dataHandler')
             
             this.field('text');
             this.field('ref');
+            this.field('lang');
             this.ref('ref');
             
             var keys = Object.keys(parsedElementsForIndexing[0]);

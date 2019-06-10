@@ -1,13 +1,13 @@
 var lunr = require('lunr');
 
 angular.module('evtviewer.dataHandler')
-   .service('evtNEOccurrencesSearchResults', ['evtNEOccurrencesSearchIndex',
-      function NEOccurrencesSearchResults(evtNEOccurrencesSearchIndex) {
+   .service('evtNEOccurrencesSearchResults', ['evtNEOccurrencesSearchIndex', 'parsedData',
+      function NEOccurrencesSearchResults(evtNEOccurrencesSearchIndex, parsedData) {
    
       var regex = /[.,\/#!$%\^&\*;:{}=_`~()]/;
       
-      NEOccurrencesSearchResults.prototype.getSearchResults = function (inputValue, isCaseSensitive) {
-         var searchResults = getResultsMetadata(inputValue, isCaseSensitive);
+      NEOccurrencesSearchResults.prototype.getSearchResults = function (inputValue, field) {
+         var searchResults = getResultsMetadata(inputValue, field);
          return searchResults;
       };
       
@@ -15,62 +15,64 @@ angular.module('evtviewer.dataHandler')
          return evtNEOccurrencesSearchIndex.getIndex();
       }
       
-      function getResultsMetadata(inputValue) {
-         var res = makeQuery(inputValue.toLowerCase()),
+      function getResultsMetadata(inputValue, field) {
+         var res = makeQuery(inputValue.toLowerCase(), field),
              results = [],
              refs = [];
          angular.forEach(res, function(result) {
             var partialResults = result.matchData.metadata;
             for (var i in partialResults) {
-               results.push(getResultData(partialResults[i]));
+               results.push(getResultData(partialResults[i], field));
             }
             if (refs.indexOf(result.ref) < 0) {
                refs.push(result.ref);
             }
          });
-         console.log(results, refs)
          return results;
       }
       
-      function makeQuery(inputValue) {
+      function makeQuery(inputValue, field) {
          var index = getIndex();
          var searchResults = index.query(function(q) {
             q.term(inputValue, {
-               fields: ["text"],
+               fields: [field],
                usePipeline: false
             });
          });
          return searchResults;
       }
-      
-      function makeRefQuery(inputValue) {
-         var index = getIndex();
-         var searchResults = index.query(function(q) {
-            q.term(inputValue, {
-               fields: ["ref"],
-               usePipeline: false
-            });
-         });
-         return searchResults;
-      }
-            
-      function getResultData(result) {
+
+      function getResultData(result, field) {
          var resultData = {};
-         var data = result.text || result.ref;
-         resultData._occurrences = data.text.length;
-         resultData._langs = {};
-         resultData._mainForm = data.text[0];
-         for (var i = 0; i < resultData._occurrences; i++) {
-            resultData[i] = {};
-            var properties = Object.keys(data);
-            for (var j = 0; j < properties.length; j++) {
-               resultData[i][properties[j]] = data[properties[j]][i];
-               if (properties[j] === 'lang') {
-                  var lang = data[properties[j]][i];
-                  if (!resultData._langs[lang]) {
-                     resultData._langs[lang] = [];
-                  }
-                  resultData._langs[lang].push(i);
+         var data = result[field];
+         var langs = data.lang.sort();
+         resultData._langs = [];
+         for (var j = 0; j < langs.length; j++) {
+            if (resultData._langs.indexOf(langs[j]) < 0) {
+               resultData._langs.push(langs[j]);
+               resultData[langs[j]] = {
+                  _indexes: []
+               }
+            }
+         }
+         resultData._ref = data.ref[0];
+         resultData._result = data[field][0];
+         for (var i = 0; i < data.text.length; i++) {
+            if (!resultData[data.lang[i]][data.text[i]]) {
+               resultData[data.lang[i]]._indexes.push(data.text[i]);
+               resultData[data.lang[i]][data.text[i]] = {
+                  form: data.text[i],
+                  divId: [data.divId[i]],
+                  div: [parsedData.getDiv(data.divId[i]).label],
+                  docId: [data.docId[i]],
+                  doc: [parsedData.getDocument(data.docId[i]).label]
+               }
+            } else {
+               if (resultData[data.lang[i]][data.text[i]].divId.indexOf(data.divId[i]) < 0) {
+                  resultData[data.lang[i]][data.text[i]].divId.push(data.divId[i]);
+                  resultData[data.lang[i]][data.text[i]].div.push(parsedData.getDiv(data.divId[i]).label);
+                  resultData[data.lang[i]][data.text[i]].docId.push(data.docId[i]);
+                  resultData[data.lang[i]][data.text[i]].doc.push(parsedData.getDocument(data.docId[i]).label);
                }
             }
          }

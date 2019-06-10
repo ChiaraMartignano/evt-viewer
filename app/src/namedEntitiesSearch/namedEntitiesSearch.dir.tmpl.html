@@ -1,8 +1,19 @@
 <div>
   <p>
+    <label>
+      Cerca forme
+      <input type="radio" value="text" ng-model="vm.field">
+    </label>
+    <label>
+      Cerca forma normalizzata
+      <input type="radio" value="ref" ng-model="vm.field">
+    </label>
     <input type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
     <button
       ng-click="search()">Cerca forme</button>
   </p>
-  <p>{{vm.results}}</p>
+  <p ng-repeat="result in vm.results">
+    <span>{{result.mainForm}}</span><br>
+    <span ng-repeat-start="form in result.forms track by $index">{{form}} lang: {{result.langs[$index]}}</span><br ng-repeat-end>
+  </p>
 </div>
