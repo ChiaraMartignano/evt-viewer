@@ -12,8 +12,19 @@
     <button
       ng-click="search()">Cerca forme</button>
   </p>
-  <p ng-repeat="result in vm.results">
-    <span>{{result.mainForm}}</span><br>
-    <span ng-repeat-start="form in result.forms track by $index">{{form}} lang: {{result.langs[$index]}}</span><br ng-repeat-end>
-  </p>
+  <div ng-repeat="result in vm.results">
+    <div ng-if="result._result !== result._ref">{{result._result}}</div>
+    <div ng-click="openNamedEntity(result._ref)">{{result._ref}}</div>
+    <div ng-repeat="lang in result._langs">
+      <p>{{lang + ' (' + result[lang]._indexes.length + ' forme)'}} </p>
+      <ul>
+        <li ng-repeat="form in result[lang]._indexes">
+          {{form}}
+          <ul ng-repeat="doc in result[lang][form].doc track by $index">
+            <li>{{doc}}</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    </div>
 </div>

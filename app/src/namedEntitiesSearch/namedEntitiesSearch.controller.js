@@ -12,7 +12,7 @@
 **/
 angular.module('evtviewer.namedEntitiesSearch')
 
-.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults, evtNamedEntitiesSearch) {
+.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults, evtNamedEntitiesSearch, evtInterface, parsedData, evtList, evtTabsContainer) {
 
     var _console = $log.getInstance('namedEntitiesSearch');
 
@@ -21,7 +21,16 @@ angular.module('evtviewer.namedEntitiesSearch')
         $scope.vm.results = results;
     }
 
+    $scope.openNamedEntity = function(entityId) {
+        var list = parsedData.getNamedEntities()[entityId].collectionId;
+        evtTabsContainer.setSubTabOpened('toc', 'entitiesLists', list);
+        evtInterface.updateState('currentNamedEntity', entityId);
+        setTimeout(function() {
+            evtList.scrollToElemById(list, entityId);
+        }, 1000);
+    }
+
     $scope.destroy = function() {
 		evtNamedEntitiesSearch.destroy($scope.vm.id);
-	};
+    };
 });

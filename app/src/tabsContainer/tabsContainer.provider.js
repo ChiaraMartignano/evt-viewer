@@ -427,6 +427,14 @@ angular.module('evtviewer.tabsContainer')
 					}
 			});
 		}
+		tabsContainer.setSubTabOpened = function(containerType, subContentOpenedName, subTab) {
+			angular.forEach(collection, function(currentTabsContainer) {
+					if (currentTabsContainer.type === containerType) {
+							currentTabsContainer.subContentOpened = subContentOpenedName;
+							currentTabsContainer.subTabOpened = subTab;
+					}
+			});
+		}
 		//
 		// Service function
 		//
