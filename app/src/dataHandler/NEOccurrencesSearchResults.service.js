@@ -62,17 +62,25 @@ angular.module('evtviewer.dataHandler')
                resultData[data.lang[i]]._indexes.push(data.text[i]);
                resultData[data.lang[i]][data.text[i]] = {
                   form: data.text[i],
-                  divId: [data.divId[i]],
-                  div: [parsedData.getDiv(data.divId[i]).label],
-                  docId: [data.docId[i]],
-                  doc: [parsedData.getDocument(data.docId[i]).label]
+                  docs: {},
+                  docsId: [data.docId[i]]
+               }
+               resultData[data.lang[i]][data.text[i]].docs[data.docId[i]] = {
+                  label: parsedData.getDocument(data.docId[i]).label,
+                  divs: [parsedData.getDiv(data.divId[i]).label],
+                  divsId: [data.divId[i]]
                }
             } else {
-               if (resultData[data.lang[i]][data.text[i]].divId.indexOf(data.divId[i]) < 0) {
-                  resultData[data.lang[i]][data.text[i]].divId.push(data.divId[i]);
-                  resultData[data.lang[i]][data.text[i]].div.push(parsedData.getDiv(data.divId[i]).label);
-                  resultData[data.lang[i]][data.text[i]].docId.push(data.docId[i]);
-                  resultData[data.lang[i]][data.text[i]].doc.push(parsedData.getDocument(data.docId[i]).label);
+               if (resultData[data.lang[i]][data.text[i]].docsId.indexOf(data.docId[i]) < 0) {
+                  resultData[data.lang[i]][data.text[i]].docsId.push(data.docId[i])
+                  resultData[data.lang[i]][data.text[i]].docs[data.docId[i]] = {
+                     label: parsedData.getDocument(data.docId[i]).label,
+                     divs: [parsedData.getDiv(data.divId[i]).label],
+                     divsId: [data.divId[i]] 
+                  }
+               } else if (resultData[data.lang[i]][data.text[i]].docs[data.docId[i]].divsId.indexOf(data.divId[i]) < 0) {
+                  resultData[data.lang[i]][data.text[i]].docs[data.docId[i]].divs.push(parsedData.getDiv(data.divId[i]).label);
+                  resultData[data.lang[i]][data.text[i]].docs[data.docId[i]].divsId.push(data.divId[i]);
                }
             }
          }

@@ -30,6 +30,10 @@ angular.module('evtviewer.namedEntitiesSearch')
         }, 1000);
     }
 
+    $scope.openDiv = function(divId) {
+        console.log(divId)
+    }
+
     $scope.destroy = function() {
 		evtNamedEntitiesSearch.destroy($scope.vm.id);
     };

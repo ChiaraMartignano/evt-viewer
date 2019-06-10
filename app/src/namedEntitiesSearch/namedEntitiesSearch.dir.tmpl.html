@@ -20,8 +20,12 @@
       <ul>
         <li ng-repeat="form in result[lang]._indexes">
           {{form}}
-          <ul ng-repeat="doc in result[lang][form].doc track by $index">
-            <li>{{doc}}</li>
+          <ul ng-repeat="doc in result[lang][form].docsId">
+            <li>{{result[lang][form].docs[doc].label}}
+              <ul ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
+                <span ng-click="openDiv(result[lang][form].docs[doc].divsId[$index])">{{div}}</span>
+              </ul>
+            </li>
           </ul>
         </li>
       </ul>
