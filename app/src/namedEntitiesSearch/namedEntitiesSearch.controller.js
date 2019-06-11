@@ -52,7 +52,7 @@ angular.module('evtviewer.namedEntitiesSearch')
         }
     }
 
-    $scope.goToDiv = function (doc, div) {
+    $scope.goToDiv = function(doc, div) {
         if (config.mainDocId && config.mainDocId !== doc) {
             changeView();
             updateWits(doc);
@@ -60,6 +60,16 @@ angular.module('evtviewer.namedEntitiesSearch')
         if (div) evtInterface.updateDiv(doc, div);
         evtInterface.updateState('secondaryContent', '');
         evtInterface.updateUrl();
+    }
+
+    $scope.selectLang = function(lang) {
+        $scope.vm.langs[lang] = !$scope.vm.langs[lang];
+    }
+
+    $scope.selectAllLangs = function($event) {
+        for (var i = 0; i < $scope.vm.langs._indexes.length; i++) {
+            $scope.vm.langs[$scope.vm.langs._indexes[i]] = $event.target.checked;
+        }
     }
 
     $scope.destroy = function() {

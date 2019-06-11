@@ -16,7 +16,15 @@
         ng-click="search()">Cerca forme</button>
     </div>
     <div>
-      
+      <span>Filtra per lingua</span>
+      <label ng-repeat="lang in vm.langs._indexes track by $index">
+        {{lang}}
+        <input type="checkbox" ng-checked="vm.langs[lang]" ng-model="vm.langs[lang]"/>
+      </label>
+      <label>
+        <span>Seleziona tutte</span>
+        <input type="checkbox" ng-click="selectAllLangs($event)"/>
+      </label>
     </div>
   </div>
   <div class="NE-search_result" ng-repeat="result in vm.results">
