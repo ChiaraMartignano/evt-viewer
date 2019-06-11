@@ -169,7 +169,7 @@
 		"SEARCH": {
 			"LABEL": "Search entities",
 			"FORM": {
-				"SEARCH": "Search forms",
+				"SEARCH": "Search",
 				"TEXT": "Search forms",
 				"REF": "Search normalized forms",
 				"LANG": "Filter by language",
@@ -177,9 +177,10 @@
 			},
 			"RESULT": {
 				"LANG": "{{lang}} ({{forms}} forms)",
-				"DOCS": "Documents",
-				"DIVS": "Chapters",
-				"NORESULTS": "No results found in the selected languages"
+				"DOCS": "Show documents that contain the form",
+				"DIVS": "Show chapters that contain the form",
+				"NORESULTS": "No results found in the selected languages",
+				"REF": "Open linked named entity in full list"
 			}
 		},
 		"XML": "XML",

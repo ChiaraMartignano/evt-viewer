@@ -1,0 +1,69 @@
+.NE-search {
+  
+  &_form {
+    position: relative;
+		margin: auto;
+		text-align: center;
+    div {
+      margin: 5px;
+      padding: 3px;
+    }
+    .query {
+      border: 2px solid $base-color-dark;
+      font-family: Junicode;
+      font-size: 18px;
+      height: 30px;
+      width: 280px;
+    }
+    .searchButton {
+      border: 2px solid $base-color-dark;
+      background: $base-color-middle;
+      color: $base-color-light;
+      height: 30px;
+      width: 50px;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+    label {
+      margin: 5px;
+      margin-right: 10px;
+      &:hover {
+        cursor: pointer;
+        font-weight: bold;
+      }
+    }
+  }
+
+  &_results {
+    width: 100%;
+    overflow-y: auto;
+    position: absolute;
+  }
+
+  &_result {
+    .link {
+      text-decoration: underline;
+      &:hover {
+        font-weight: bold;
+        cursor: pointer;
+      }
+    }
+    ul {
+      list-style-type: none;
+    }
+    .openList:hover {
+      cursor: pointer;
+    }
+    .divsList, .docsList {
+      display: none;
+    }
+    .open {
+      display: block;
+    }
+  }
+
+  &_no-results {
+
+  }
+}

@@ -169,7 +169,7 @@
 		"SEARCH": {
 			"LABEL": "Ricerca realia",
 			"FORM": {
-				"SEARCH": "Cerca forme",
+				"SEARCH": "Cerca",
 				"TEXT": "Cerca forme",
 				"REF": "Cerca forme normalizzate",
 				"LANG": "Filtra per lingua",
@@ -177,9 +177,10 @@
 			},
 			"RESULT": {
 				"LANG": "{{lang}} ({{forms}} forme)",
-				"DOCS": "Documenti",
-				"DIVS": "Capitoli",
-				"NORESULTS": "Nessun risultato trovato nelle lingue selezionate"
+				"DOCS": "Mostra documenti in cui la forma è presente",
+				"DIVS": "Mostra capitoli in cui la forma è presente",
+				"NORESULTS": "Nessun risultato trovato nelle lingue selezionate",
+				"REF": "Apri realia collegato nell'elenco"
 			}
 		},
 		"XML": "XML",
