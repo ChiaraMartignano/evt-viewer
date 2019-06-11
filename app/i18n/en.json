@@ -167,7 +167,20 @@
 			"TITLE": "{{totalLength}} occurrences found in {{formLength}} different forms"
 		},
 		"SEARCH": {
-			"LABEL": "Search entities"
+			"LABEL": "Search entities",
+			"FORM": {
+				"SEARCH": "Search forms",
+				"TEXT": "Search forms",
+				"REF": "Search normalized forms",
+				"LANG": "Filter by language",
+				"ALL": "Select all"
+			},
+			"RESULT": {
+				"LANG": "{{lang}} ({{forms}} forms)",
+				"DOCS": "Documents",
+				"DIVS": "Chapters",
+				"NORESULTS": "No results found in the selected languages"
+			}
 		},
 		"XML": "XML",
 		"MAP": "Map"

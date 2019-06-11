@@ -167,7 +167,20 @@
 			"TITLE": "{{totalLength}} occorrenze trovate in {{formLength}} forme diverse"
 		},
 		"SEARCH": {
-			"LABEL": "Ricerca realia"
+			"LABEL": "Ricerca realia",
+			"FORM": {
+				"SEARCH": "Cerca forme",
+				"TEXT": "Cerca forme",
+				"REF": "Cerca forme normalizzate",
+				"LANG": "Filtra per lingua",
+				"ALL": "Seleziona tutte"
+			},
+			"RESULT": {
+				"LANG": "{{lang}} ({{forms}} forme)",
+				"DOCS": "Documenti",
+				"DIVS": "Capitoli",
+				"NORESULTS": "Nessun risultato trovato nelle lingue selezionate"
+			}
 		},
 		"XML": "XML",
 		"MAP": "Mappa"

@@ -2,27 +2,27 @@
   <div class="NE-search_form">
     <div>
       <label>
-          Cerca forme
+          <span translate="NAMED_ENTITIES.SEARCH.FORM.TEXT"></span>
           <input type="radio" value="text" ng-model="vm.field">
         </label>
         <label>
-          Cerca forma normalizzata
+          <span translate="NAMED_ENTITIES.SEARCH.FORM.REF"></span>
           <input type="radio" value="ref" ng-model="vm.field">
         </label>
     </div>
     <div>
       <input type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
       <button
-        ng-click="search()">Cerca forme</button>
+        ng-click="search()" translate="NAMED_ENTITIES.SEARCH.FORM.SEARCH"></button>
     </div>
     <div>
-      <span>Filtra per lingua</span>
+      <span translate="NAMED_ENTITIES.SEARCH.FORM.LANG"></span>
       <label ng-repeat="lang in vm.langs._indexes track by $index">
         {{lang}}
         <input type="checkbox" ng-checked="vm.langs[lang]" ng-model="vm.langs[lang]" ng-click="selectLang()"/>
       </label>
       <label>
-        <span>Seleziona tutte</span>
+        <span translate="NAMED_ENTITIES.SEARCH.FORM.ALL"></span>
         <input type="checkbox" ng-click="selectAllLangs($event)"/>
       </label>
     </div>
@@ -34,15 +34,17 @@
           <div ng-click="openNamedEntity(result._ref)">{{result._ref}}</div>
           <div ng-repeat="lang in result._langs">
             <ng-container ng-if="vm.langs[lang]">
-              <p>{{lang + ' (' + result[lang]._indexes.length + ' forme)'}}</p>
+              <p>{{ 'NAMED_ENTITIES.SEARCH.RESULT.LANG' | translate:{lang:lang, forms:result[lang]._indexes.length} }}</p>
               <ul>
                 <li ng-repeat="form in result[lang]._indexes">
                   {{form}}
                   <ul ng-repeat="doc in result[lang][form].docsId">
+                    <span translate="NAMED_ENTITIES.SEARCH.RESULT.DOCS"></span>
                     <li>
                       <span class="docLink" ng-click="goToDiv(doc)">{{result[lang][form].docs[doc].label}}</span>
                       <ul ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
-                        <span class="divLink" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</span>
+                        <span translate="NAMED_ENTITIES.SEARCH.RESULT.DIVS"></span>
+                        <li class="divLink" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</li>
                       </ul>
                     </li>
                   </ul>
@@ -54,6 +56,6 @@
       </div>
   </div>
   <div ng-if="!vm.resultsAvailable">
-    Nessun risultato trovato nelle lingue selezionate
+    <span translate="NAMED_ENTITIES.SEARCH.RESULT.NORESULTS"></span>
   </div>
 </div>
