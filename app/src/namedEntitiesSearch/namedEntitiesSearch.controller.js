@@ -23,6 +23,7 @@ angular.module('evtviewer.namedEntitiesSearch')
     }
 
     $scope.openNamedEntity = function(entityId) {
+        console.log(entityId)
         var list = parsedData.getNamedEntities()[entityId].collectionId;
         evtTabsContainer.setSubTabOpened('toc', 'entitiesLists', list);
         evtInterface.updateState('currentNamedEntity', entityId);

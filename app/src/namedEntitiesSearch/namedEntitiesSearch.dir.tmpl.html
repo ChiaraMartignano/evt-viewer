@@ -30,6 +30,7 @@
     </div>
   </div>
   <div ng-if="vm.resultsAvailable" class="NE-search_results">
+    <div ng-if="vm.results.length > 0" class="resultInfo">{{ 'NAMED_ENTITIES.SEARCH.RESULT.TOT' | translate:{total: vm.results.length} }}</div>
     <div class="NE-search_result" ng-repeat="result in vm.results">
         <ng-container ng-if="checkLangs([result])">
           <div class="link resultTitle" ng-click="openNamedEntity(result._ref)" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.REF' | translate }}">{{result._result}}</div>

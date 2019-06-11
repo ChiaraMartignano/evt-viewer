@@ -1,6 +1,8 @@
 .NE-search {
   
   &_form {
+    background-color: $base-color-light;
+    padding: 10px 5px;
     position: relative;
 		margin: auto;
 		text-align: center;
@@ -36,12 +38,18 @@
   }
 
   &_results {
-    width: 100%;
-    overflow-y: auto;
-    position: absolute;
+    .resultInfo {
+      margin: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+    &> div:not(.resultInfo) {
+      display: flex;
+    }
   }
 
   &_result {
+    border: 1px solid $base-color-light;
     .link {
       text-decoration: underline;
       &:hover {
@@ -64,6 +72,8 @@
   }
 
   &_no-results {
-
+    margin: 5px;
+    text-align: center;
+    font-weight: bold;
   }
 }

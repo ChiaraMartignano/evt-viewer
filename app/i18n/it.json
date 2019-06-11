@@ -180,7 +180,8 @@
 				"DOCS": "Mostra documenti in cui la forma è presente",
 				"DIVS": "Mostra capitoli in cui la forma è presente",
 				"NORESULTS": "Nessun risultato trovato nelle lingue selezionate",
-				"REF": "Apri realia collegato nell'elenco"
+				"REF": "Apri realia collegato nell'elenco",
+				"TOT": "Risultati trovati: {{total}}"
 			}
 		},
 		"XML": "XML",

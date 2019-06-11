@@ -284,7 +284,7 @@ angular.module('evtviewer.tabsContainer')
 						icon: 'fa-search',
 						name: 'namedEntitiesSearch',
 						content: '<evt-named-entities-search></evt-named-entities-search>',
-						scrollDisabled: true
+						scrollDisabled: false
 					};
 					if (tabs.entitiesLists.subTabs._indexes.indexOf('namedEntitiesSearch') < 0) {
 						tabs.entitiesLists.subTabs._indexes.push('namedEntitiesSearch');

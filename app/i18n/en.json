@@ -180,7 +180,8 @@
 				"DOCS": "Show documents that contain the form",
 				"DIVS": "Show chapters that contain the form",
 				"NORESULTS": "No results found in the selected languages",
-				"REF": "Open linked named entity in full list"
+				"REF": "Open linked named entity in full list",
+				"TOT": "Results found: {{total}}"
 			}
 		},
 		"XML": "XML",
