@@ -490,6 +490,7 @@ angular.module('evtviewer.dataHandler')
 	};
 
 	var NEOccurrences = [];
+	var NEOccurrencesLangs = [];
 	var NEOccurrencesIndex = {};
 
 	parsedData.addNEOccurrence = function(occurrence) {
@@ -506,6 +507,18 @@ angular.module('evtviewer.dataHandler')
 	
 	parsedData.getNEOccurrencesIndex = function() {
 		return NEOccurrencesIndex;
+	}
+
+	parsedData.addNEOccurrencesLangs = function(langs) {
+		for (var i = 0; i < langs.length; i++) {
+			if (NEOccurrencesLangs.indexOf(langs[i]) < 0) {
+				NEOccurrencesLangs.push(langs[i]);
+			}
+		}
+	}
+
+	parsedData.getNEOccurrencesLangs = function(langs) {
+		return NEOccurrencesLangs;
 	}
 
 	parsedData.getMainFront = function() {

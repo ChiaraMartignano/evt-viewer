@@ -1,22 +1,29 @@
-<div>
-  <p>
-    <label>
-      Cerca forme
-      <input type="radio" value="text" ng-model="vm.field">
-    </label>
-    <label>
-      Cerca forma normalizzata
-      <input type="radio" value="ref" ng-model="vm.field">
-    </label>
-    <input type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
-    <button
-      ng-click="search()">Cerca forme</button>
-  </p>
-  <div ng-repeat="result in vm.results">
+<div class="NE-search">
+  <div class="NE-search_form">
+    <div>
+      <label>
+          Cerca forme
+          <input type="radio" value="text" ng-model="vm.field">
+        </label>
+        <label>
+          Cerca forma normalizzata
+          <input type="radio" value="ref" ng-model="vm.field">
+        </label>
+    </div>
+    <div>
+      <input type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
+      <button
+        ng-click="search()">Cerca forme</button>
+    </div>
+    <div>
+      
+    </div>
+  </div>
+  <div class="NE-search_result" ng-repeat="result in vm.results">
     <div ng-if="result._result !== result._ref">{{result._result}}</div>
     <div ng-click="openNamedEntity(result._ref)">{{result._ref}}</div>
     <div ng-repeat="lang in result._langs">
-      <p>{{lang + ' (' + result[lang]._indexes.length + ' forme)'}} </p>
+      <p>{{lang + ' (' + result[lang]._indexes.length + ' forme)'}}</p>
       <ul>
         <li ng-repeat="form in result[lang]._indexes">
           {{form}}
@@ -31,5 +38,5 @@
         </li>
       </ul>
     </div>
-    </div>
+  </div>
 </div>

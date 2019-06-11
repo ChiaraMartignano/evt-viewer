@@ -53,7 +53,6 @@ angular.module('evtviewer.namedEntitiesSearch')
     }
 
     $scope.goToDiv = function (doc, div) {
-        console.log(doc, div)
         if (config.mainDocId && config.mainDocId !== doc) {
             changeView();
             updateWits(doc);

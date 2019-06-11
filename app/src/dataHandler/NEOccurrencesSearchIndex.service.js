@@ -21,7 +21,6 @@ angular.module('evtviewer.dataHandler')
             this.ref('ref');
             
             var keys = Object.keys(parsedElementsForIndexing[0]);
-            console.log(keys)
             for (var i = 0; i < keys.length; i++) {
                this.use(addMetadata, keys[i], parsedElementsForIndexing);
             }

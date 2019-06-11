@@ -867,8 +867,7 @@ angular.module('evtviewer.dataHandler')
 		console.log('## PAGES ##', parsedData.getPages());
 		console.log('## Documents ##', parsedData.getDocuments());
 		console.log('## DIVS ##', parsedData.getDivs());
-		console.log('## Entities Occurrences ##', parsedData.getNEOccurrences());
-		console.log('## Entities Occurrences ##', parsedData.buildNEOccurrencesIndex());
+		parsedData.buildNEOccurrencesIndex();
 		return parsedData.getDocuments();
 	};
 
@@ -1013,11 +1012,13 @@ angular.module('evtviewer.dataHandler')
 		var elemsToSearch = ['placeName', 'persName', 'orgName', 'term'];
 		var types = ['place', 'person', 'org', 'generic'];
 		var i = 0;
+		var langs = [];
 		for (var i = 0; i < elemsToSearch.length; i++) {
 			var entities = element.querySelectorAll(elemsToSearch[i]);
 			for (var j = 0; j < entities.length; j++) {
 				var ref = entities[j].getAttribute('ref') || '';
 				var l = entities[j].hasAttribute('xml:lang') && entities[j].getAttribute('xml:lang') !== '' ? entities[j].getAttribute('xml:lang') : lang;
+				if (langs.indexOf(l) < 0) { langs.push(l); }
 				if (ref) {
 					var newEntityOccurrence = {
 						divId: divId,
@@ -1032,6 +1033,7 @@ angular.module('evtviewer.dataHandler')
 				}
 			}
 		}
+		parsedData.addNEOccurrencesLangs(langs);
 	}
 
 	/**
