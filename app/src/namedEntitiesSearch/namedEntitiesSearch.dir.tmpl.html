@@ -21,9 +21,10 @@
         <li ng-repeat="form in result[lang]._indexes">
           {{form}}
           <ul ng-repeat="doc in result[lang][form].docsId">
-            <li>{{result[lang][form].docs[doc].label}}
+            <li>
+              <span class="docLink" ng-click="goToDiv(doc)">{{result[lang][form].docs[doc].label}}</span>
               <ul ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
-                <span ng-click="openDiv(result[lang][form].docs[doc].divsId[$index])">{{div}}</span>
+                <span class="divLink" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</span>
               </ul>
             </li>
           </ul>

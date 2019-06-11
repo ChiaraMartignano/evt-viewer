@@ -12,7 +12,7 @@
 **/
 angular.module('evtviewer.namedEntitiesSearch')
 
-.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults, evtNamedEntitiesSearch, evtInterface, parsedData, evtList, evtTabsContainer) {
+.controller('namedEntitiesSearchCtrl', function($log, $scope, evtNEOccurrencesSearchResults, evtNamedEntitiesSearch, evtInterface, parsedData, evtList, evtTabsContainer, config) {
 
     var _console = $log.getInstance('namedEntitiesSearch');
 
@@ -30,8 +30,37 @@ angular.module('evtviewer.namedEntitiesSearch')
         }, 1000);
     }
 
-    $scope.openDiv = function(divId) {
-        console.log(divId)
+    var changeView = function() {
+        if (evtInterface.getState('currentViewMode') !== 'collation') {
+            evtInterface.updateState('currentViewMode', 'collation');
+        }
+    }
+
+    var updateWits = function(doc) {
+        var wit, corresp = parsedData.getWitnessesList().find(function(witId) {
+            wit = witId
+            return parsedData.getWitness(witId).corresp === doc;
+        });
+        if (config.mainDocId && corresp) {
+            var currentWits = evtInterface.getState('currentWits');
+            var index = currentWits.indexOf(wit);
+            if (index === -1) {
+                evtInterface.addWitnessAtIndex(wit, 0);
+            } else if (index > 0) {
+                evtInterface.switchWitnesses(currentWits[0], wit);
+            }
+        }
+    }
+
+    $scope.goToDiv = function (doc, div) {
+        console.log(doc, div)
+        if (config.mainDocId && config.mainDocId !== doc) {
+            changeView();
+            updateWits(doc);
+        }
+        if (div) evtInterface.updateDiv(doc, div);
+        evtInterface.updateState('secondaryContent', '');
+        evtInterface.updateUrl();
     }
 
     $scope.destroy = function() {
