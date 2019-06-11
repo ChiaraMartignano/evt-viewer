@@ -19,6 +19,7 @@ angular.module('evtviewer.namedEntitiesSearch')
     $scope.search = function() {
         var results = evtNEOccurrencesSearchResults.getSearchResults($scope.vm.inputValue, $scope.vm.field);
         $scope.vm.results = results;
+        $scope.vm.resultsAvailable = checkLangs(results);
     }
 
     $scope.openNamedEntity = function(entityId) {
@@ -62,14 +63,34 @@ angular.module('evtviewer.namedEntitiesSearch')
         evtInterface.updateUrl();
     }
 
-    $scope.selectLang = function(lang) {
-        $scope.vm.langs[lang] = !$scope.vm.langs[lang];
+    $scope.selectLang = function() {
+        $scope.vm.resultsAvailable = $scope.vm.results.length > 0 ? checkLangs($scope.vm.results) : true;
     }
 
     $scope.selectAllLangs = function($event) {
         for (var i = 0; i < $scope.vm.langs._indexes.length; i++) {
             $scope.vm.langs[$scope.vm.langs._indexes[i]] = $event.target.checked;
         }
+        $scope.vm.resultsAvailable = $scope.vm.results.length > 0 ? checkLangs($scope.vm.results) : true;
+    }
+
+    var checkLangs = function(results) {
+        console.log(results)
+        var resultsAvailable = false
+        for (var i = 0; i < results.length; i++) {
+            var availableLangs = [];
+            for (var j = 0; j < results[i]._langs.length; j++) {
+                if ($scope.vm.langs[results[i]._langs[j]]) {
+                    availableLangs.push(results[i]._langs[j])
+                }
+            }
+            resultsAvailable = resultsAvailable || availableLangs.length > 0;
+        }
+        return resultsAvailable;
+    }
+
+    $scope.checkLangs = function(results) {
+        return checkLangs(results)
     }
 
     $scope.destroy = function() {

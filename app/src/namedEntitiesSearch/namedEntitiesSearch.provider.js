@@ -53,7 +53,8 @@ angular.module('evtviewer.namedEntitiesSearch')
 				id: currentId,
 				inputValue: '',
 				field: 'text',
-				results: []
+				results: [],
+				resultsAvailable: true
 			};
 
 			collection[currentId] = angular.extend(scope.vm, scopeHelper);
