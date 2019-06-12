@@ -93,6 +93,17 @@ angular.module('evtviewer.namedEntitiesSearch')
         return checkLangs(results)
     }
 
+    $scope.openList = function($event, info) {
+        var listElem = document.getElementById(info + '-list');
+        if ($event.target.className.indexOf('fa-caret-down') < 0) {
+            $event.target.className = 'openList fa fa-caret-down';
+            listElem.className += ' open';
+        } else {
+            $event.target.className = 'openList fa fa-caret-right';
+            listElem.className = listElem.className.replace(' open', '');
+        }
+    }
+
     $scope.destroy = function() {
 		evtNamedEntitiesSearch.destroy($scope.vm.id);
     };

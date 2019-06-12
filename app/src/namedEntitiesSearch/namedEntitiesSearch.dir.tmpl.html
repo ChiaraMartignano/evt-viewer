@@ -32,19 +32,19 @@
   <div ng-if="vm.resultsAvailable" class="NE-search_results">
     <div ng-if="vm.results.length > 0" class="resultInfo">{{ 'NAMED_ENTITIES.SEARCH.RESULT.TOT' | translate:{total: vm.results.length} }}</div>
     <div class="NE-search_result" ng-repeat="result in vm.results">
-        <ng-container ng-if="checkLangs([result])">
+        <!-- <ng-container ng-if="checkLangs([result])"> -->
           <div class="link resultTitle" ng-click="openNamedEntity(result._ref)" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.REF' | translate }}">{{result._result}}</div>
           <div ng-repeat="lang in result._langs">
             <ng-container ng-if="vm.langs[lang]">
               <p>{{ 'NAMED_ENTITIES.SEARCH.RESULT.LANG' | translate:{lang:lang, forms:result[lang]._indexes.length} }}</p>
               <ul>
                 <li ng-repeat="form in result[lang]._indexes">
-                  <i ng-click="openList($event)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DOCS' | translate }}"></i> {{form}}
-                  <ul class="docsList" ng-repeat="doc in result[lang][form].docsId">
+                  <i ng-click="openList($event, form)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DOCS' | translate }}"></i> <span>{{form}}</span>
+                  <ul id="{{form}}-list" class="list" ng-repeat="doc in result[lang][form].docsId">
                     <li>
-                      <i ng-click="openList($event)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DIVS' | translate }}"></i>
+                      <i ng-click="openList($event, doc)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DIVS' | translate }}"></i>
                       <span class="link" ng-click="goToDiv(doc)">{{result[lang][form].docs[doc].label}}</span>
-                      <ul class="divsList" ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
+                      <ul id="{{doc}}-list" class="list" ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
                         <li class="link" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</li>
                       </ul>
                     </li>
@@ -53,7 +53,7 @@
               </ul>
             </ng-container>
           </div>
-        </ng-container>
+        <!-- </ng-container> -->
       </div>
   </div>
   <div ng-if="!vm.resultsAvailable" class="NE-search_no-results">
