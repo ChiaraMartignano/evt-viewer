@@ -30,7 +30,7 @@
 **/
 angular.module('evtviewer.list')
 
-.directive('evtList', function(evtList, $timeout) {
+.directive('evtList', function(evtList, $timeout, evtInterface) {
     return {
         restrict: 'E',
         scope: {
@@ -56,6 +56,13 @@ angular.module('evtviewer.list')
                     }
                 });
             }
+            scope.$watch(function() {
+                return evtInterface.getState('currentNamedEntity');
+            }, function(newItem, oldItem) {
+                if (oldItem !== newItem) {
+                    currentList.selectLetter(newItem.charAt(0));
+                }
+            })
             // Garbage collection
             scope.$on('$destroy', function() {
                 if (currentList){
