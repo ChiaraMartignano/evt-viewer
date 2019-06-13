@@ -75,7 +75,6 @@ angular.module('evtviewer.namedEntitiesSearch')
     }
 
     var checkLangs = function(results) {
-        console.log(results)
         var resultsAvailable = false
         for (var i = 0; i < results.length; i++) {
             var availableLangs = [];
@@ -93,8 +92,8 @@ angular.module('evtviewer.namedEntitiesSearch')
         return checkLangs(results)
     }
 
-    $scope.openList = function($event, info) {
-        var listElem = document.getElementById(info + '-list');
+    $scope.openList = function($event, info, lang) {
+        var listElem = document.getElementById(info + '-' + lang + '-list');
         if ($event.target.className.indexOf('fa-caret-down') < 0) {
             $event.target.className = 'openList fa fa-caret-down';
             listElem.className += ' open';

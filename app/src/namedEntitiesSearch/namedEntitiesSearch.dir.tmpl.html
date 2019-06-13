@@ -1,11 +1,11 @@
 <div class="NE-search">
-  <div class="NE-search_form">
+  <form ng-submit="search()" class="NE-search_form">
     <div>
       <input class="query" type="text" ng-model="vm.inputValue" autocomplete="off" autofocus>
-      <button class="searchButton"
-        ng-click="search()" title="{{ 'NAMED_ENTITIES.SEARCH.FORM.SEARCH' | translate }}">
+      <span ng-click="search()" class="searchButton" title="{{ 'NAMED_ENTITIES.SEARCH.FORM.SEARCH' | translate }}">
+        <input type="submit" value="">
         <i class="fa fa-search"></i>
-      </button>
+      </span>
     </div>
     <div>
       <label>
@@ -28,35 +28,33 @@
         <span translate="NAMED_ENTITIES.SEARCH.FORM.ALL"></span>
       </label>
     </div>
+  </form>
+  <div class="NE-search_resultsInfo" ng-if="!vm.resultsAvailable || (vm.resultsAvailable && vm.results.length > 0)">
+    <span ng-if="vm.resultsAvailable">{{ 'NAMED_ENTITIES.SEARCH.RESULT.TOT' | translate:{total: vm.results.length} }}</span>
+    <span ng-if="!vm.resultsAvailable" translate="NAMED_ENTITIES.SEARCH.RESULT.NORESULTS"></span>
   </div>
   <div ng-if="vm.resultsAvailable" class="NE-search_results">
-    <div ng-if="vm.results.length > 0" class="resultInfo">{{ 'NAMED_ENTITIES.SEARCH.RESULT.TOT' | translate:{total: vm.results.length} }}</div>
     <div class="NE-search_result" ng-repeat="result in vm.results">
-        <!-- <ng-container ng-if="checkLangs([result])"> -->
-          <div class="link resultTitle" ng-click="openNamedEntity(result._ref)" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.REF' | translate }}">{{result._result}}</div>
-          <div ng-repeat="lang in result._langs">
-            <ng-container ng-if="vm.langs[lang]">
-              <p>{{ 'NAMED_ENTITIES.SEARCH.RESULT.LANG' | translate:{lang:lang, forms:result[lang]._indexes.length} }}</p>
-              <ul>
-                <li ng-repeat="form in result[lang]._indexes">
-                  <i ng-click="openList($event, form)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DOCS' | translate }}"></i> <span>{{form}}</span>
-                  <ul id="{{form}}-list" class="list" ng-repeat="doc in result[lang][form].docsId">
-                    <li>
-                      <i ng-click="openList($event, doc)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DIVS' | translate }}"></i>
-                      <span class="link" ng-click="goToDiv(doc)">{{result[lang][form].docs[doc].label}}</span>
-                      <ul id="{{doc}}-list" class="list" ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
-                        <li class="link" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</li>
-                      </ul>
-                    </li>
+      <div class="link resultTitle" ng-click="openNamedEntity(result._ref)" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.REF' | translate }}">{{result._result}}</div>
+      <div class="langs" ng-repeat="lang in result._langs">
+        <ng-container ng-if="vm.langs[lang]">
+          <span class="lang">{{ 'NAMED_ENTITIES.SEARCH.RESULT.LANG' | translate:{lang:lang, forms:result[lang]._indexes.length} }}</span>
+          <ul class="main-list">
+            <li ng-repeat="form in result[lang]._indexes">
+              <i ng-click="openList($event, form, lang)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DOCS' | translate }}"></i> <span>{{form}}</span>
+              <ul id="{{form + '-' + lang}}-list" class="list" ng-repeat="doc in result[lang][form].docsId">
+                <li>
+                  <i ng-click="openList($event, doc, lang)" class="openList fa fa-caret-right" title="{{ 'NAMED_ENTITIES.SEARCH.RESULT.DIVS' | translate }}"></i>
+                  <span class="link" ng-click="goToDiv(doc)">{{result[lang][form].docs[doc].label}}</span>
+                  <ul id="{{doc + '-' + lang}}-list" class="list" ng-repeat="div in result[lang][form].docs[doc].divs track by $index">
+                    <li class="link" ng-click="goToDiv(doc, result[lang][form].docs[doc].divsId[$index])">{{div}}</li>
                   </ul>
                 </li>
               </ul>
-            </ng-container>
-          </div>
-        <!-- </ng-container> -->
+            </li>
+          </ul>
+        </ng-container>
       </div>
-  </div>
-  <div ng-if="!vm.resultsAvailable" class="NE-search_no-results">
-    <span translate="NAMED_ENTITIES.SEARCH.RESULT.NORESULTS"></span>
+      </div>
   </div>
 </div>

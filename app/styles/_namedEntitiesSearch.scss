@@ -21,10 +21,13 @@
       border: 2px solid $base-color-dark;
       background: $base-color-middle;
       color: $base-color-light;
-      height: 30px;
-      width: 50px;
+      height: 40px !important;
+      width: 60px !important;
       &:hover {
         cursor: pointer;
+      }
+      input {
+        display: none;
       }
     }
     label {
@@ -37,22 +40,31 @@
     }
   }
 
+  &_resultsInfo {
+    margin: 5px;
+    text-align: center;
+    font-weight: bold;
+  }
+
   &_results {
-    .resultInfo {
-      margin: 5px;
-      text-align: center;
-      font-weight: bold;
-    }
-    &> div:not(.resultInfo) {
-      display: flex;
-    }
+    display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
   }
 
   &_result {
     border: 1px solid $base-color-light;
-    border-radius: 3px;
+    border-radius: 4px;
     padding: 10px;
     margin: 5px;
+    .resultTitle {
+      margin-bottom: 8px;
+    }
+    .langs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
     .link {
       text-decoration: underline;
       &:hover {
@@ -62,6 +74,11 @@
     }
     ul {
       list-style-type: none;
+      padding-left: 12px;
+      &.main-list {
+        margin-top: 6px;
+        margin-bottom: 12px;
+      }
     }
     .openList:hover {
       cursor: pointer;
@@ -72,11 +89,5 @@
         display: block;
       }
     }
-  }
-
-  &_no-results {
-    margin: 5px;
-    text-align: center;
-    font-weight: bold;
   }
 }
