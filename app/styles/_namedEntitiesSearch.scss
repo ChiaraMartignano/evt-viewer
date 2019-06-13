@@ -10,21 +10,37 @@
       margin: 5px;
       padding: 3px;
     }
-    .query {
+    .search {
+      margin: 0 auto;
       border: 2px solid $base-color-dark;
       font-family: Junicode;
       font-size: 18px;
       height: 30px;
       width: 280px;
+      padding: 0px;
+      text-align: left;
+    }
+    .query {
+      font-family: Junicode;
+      font-size: 18px;
+      border: none;
+      background-color: transparent;
+      height: 28px;
+      width: 250px;
+      margin: 0px;
+      padding: 2px 8px;
+      &:focus {
+        border: none !important;
+      }
+      &:active {
+        border: none;
+      }
     }
     .searchButton {
-      border: 2px solid $base-color-dark;
-      background: $base-color-middle;
-      color: $base-color-light;
-      height: 40px !important;
-      width: 60px !important;
+      color: $base-color-dark;
       &:hover {
         cursor: pointer;
+        text-shadow: 0px 0px 1px rgba(0,0,0,.7);
       }
       input {
         display: none;
